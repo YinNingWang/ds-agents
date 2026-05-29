@@ -8,8 +8,6 @@
 
 ## 🚀 快速開始
 
-**這幾隻你可以先用看看，其他資料夾有必要再拉下來**：
-
 ### 1. `agents/` — 三隻 agent（裝起來或載下來呼叫）
 
 - **`ds-designer.md`** → design guideline 建置設計師，design system 從 0 起手或維護時用
@@ -38,6 +36,19 @@
 | PR pre-merge / 想 audit 一下既有 component | **`ds-reviewer`** | read-only，產 P0/P1/P2 報告，不會動 code |
 | 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接 |
 | 純 refactor 既有 code（不動 UI） | **`tdd-developer` 一個就好** | 沒 design 改動，不用 spawn ds-designer / ds-reviewer |
+
+---
+
+## 為什麼有這個 repo
+
+solo founder 跑多個 side project 時，最痛的點是：
+- brand 文件散落（vault / Notion / repo root / Figma 註解都有）
+- design system 跟 brand 反覆 drift（spec 改了 code 沒同步、或反過來）
+- 每個新 project 都要重新發明結構
+
+這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + starter scaffold + 通用 anti-pattern。從第二個 project 開始就可以直接套用。
+
+**這不是設計系統理論**。是「實際跑過後留下的接地氣 SOP」。
 
 ---
 
@@ -115,24 +126,27 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## ⚠ 已知限制 · agent 程式化呼叫
+## ⚠ 一個現在還不方便的地方
 
-截至 2026-05，Claude Code 的 `Agent` tool 的 `subagent_type` 參數 **只接受 6 個 built-in**（claude / claude-code-guide / Explore / general-purpose / Plan / statusline-setup）。
-`~/.claude/agents/` 下的 user-defined agent **目前無法**透過 `Agent` tool 程式化 spawn。
+**白話版**：理論上 Claude Code 應該可以「主 session 自動把你自定義的 agent 叫起來跑」，但目前還沒支援。所以本 repo 的三隻 agent **沒辦法用 `Agent` tool 一鍵 spawn**，需要繞一下。
 
-**目前可用的 3 條 workaround**：
+具體狀況：Claude Code 內建 6 隻 agent（claude / Explore / Plan 等）能被程式呼叫，但 `~/.claude/agents/` 下你自己放的 agent（包含本 repo 這三隻）暫時還不能這樣自動 spawn。
 
-1. **Inline run（推薦給 read-only agent，例如 ds-reviewer）**：
-   主 Claude session 直接讀 agent spec、內化、按 spec 步驟執行
-2. **Skill wrapper**：
-   把 agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，透過 `Skill` tool 呼叫
-3. **Manual handoff**：
-   開新 Claude Code session，把 agent spec + scope 貼進去，互動執行
+**目前的 3 個解法**（沒到不能用，只是手動一點）：
 
-**本 repo 三隻 agent 的目前狀態**：
-- ✅ Inline run 全部可用
-- ❌ Agent tool 程式化 spawn 不行
-- 等 Claude Code 之後支援 user-defined agent 註冊到 `subagent_type`，就能無痛切過去
+1. **最簡單 · 讓主 session 自己內化執行**
+   開 Claude Code session，把 agent 的內容貼進去，請主 session「照這份 spec 做事」。
+   對 ds-reviewer 這種純讀檔產報告的 agent **最順**，因為它本來就不需要 context 隔離。
+
+2. **包一層 skill 來叫**
+   把 agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，之後用 skill 觸發。
+   trade-off：執行 semantics 跟真的 subagent 不一樣（skill 不是隔離 process）。
+
+3. **另開一個 session 跑**
+   為了 context 隔離，特地開新的 Claude Code session，把 agent spec + 想做的事貼進去，互動執行。
+
+**未來變方便了會怎樣？**
+Claude Code 之後支援 user-defined agent 程式化 spawn 後，現有 agent spec **不用改**就能無痛切過去。所以現在這個不方便不會造成 future migration cost。
 
 ---
 
@@ -153,19 +167,6 @@ cd ~/sandbox/ds-agents
 - [ ] 更多 starter scaffold 變體（不同 stack：SvelteKit + Tailwind、Astro + UnoCSS 等）
 - [ ] Brand Book Skill 整合：chisel 完直接輸出進 `<repo>/brand/`
 - [ ] N=2 dogfood run 在不同 product → 萃出 v2 patterns
-
----
-
-## 為什麼有這個 repo
-
-solo founder 跑多個 side project 時，最痛的點是：
-- brand 文件散落（vault / Notion / repo root / Figma 註解都有）
-- design system 跟 brand 反覆 drift（spec 改了 code 沒同步、或反過來）
-- 每個新 project 都要重新發明結構
-
-這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + starter scaffold + 通用 anti-pattern。從第二個 project 開始就可以直接套用。
-
-**這不是設計系統理論**。是「實際跑過後留下的接地氣 SOP」。
 
 ---
 

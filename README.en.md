@@ -8,8 +8,6 @@ Three Claude Code agents + a starter scaffold + two skills for solo founders & s
 
 ## 🚀 Quick start
 
-**Use these directly; pull the rest only if you need them.**
-
 ### 1. `agents/` — three agents (install or load on demand)
 
 - **`ds-designer.md`** → builds & maintains `<repo>/design/guideline.md`. Spawn when bootstrapping or maintaining a design system.
@@ -38,6 +36,19 @@ When bootstrapping from zero, **copy the entire `starter/` folder into your repo
 | PR pre-merge / want to audit an existing component | **`ds-reviewer`** | Read-only, produces P0/P1/P2 report, never modifies code |
 | Visual exploration via Claude Design, handing off to Claude Code dev | **`skills/_skill_design-handoff.md`** (paste into Claude Design) | Claude Design runs the 6-phase workflow to produce a handoff bundle |
 | Pure refactor of existing code (no UI change) | **`tdd-developer` only** | No design change, no need for ds-designer / ds-reviewer |
+
+---
+
+## Why this repo exists
+
+Running multiple side projects as a solo founder, the recurring pain points are:
+- Brand docs scatter (vault / Notion / repo root / Figma comments)
+- Design system drifts from brand (spec changes don't sync to code, or vice versa)
+- Each new project reinvents the structure
+
+This repo distills one real run into: fixed folder structure + agent contract + starter scaffold + universal anti-patterns. From the second project onwards, it's a copy-and-adapt job.
+
+**Not a design system theory**. A grounded SOP that survived one real shipment.
 
 ---
 
@@ -111,19 +122,26 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## ⚠ Known limitation — programmatic spawn
+## ⚠ One current inconvenience
 
-As of 2026-05, Claude Code's `Agent` tool `subagent_type` parameter only accepts 6 built-in types (claude / claude-code-guide / Explore / general-purpose / Plan / statusline-setup). User-defined agents in `~/.claude/agents/` are **not** yet discoverable via `Agent` tool.
+**Plain version**: In theory, Claude Code should be able to programmatically spawn your custom agents from the main session — but it doesn't yet. So the three agents in this repo **can't be invoked via the `Agent` tool with one click**. You'll need a small workaround.
 
-**Workarounds**:
+The detail: Claude Code's 6 built-in agents (claude / Explore / Plan, etc.) are callable programmatically, but agents you place in `~/.claude/agents/` yourself (including this repo's three) currently can't be auto-spawned that way.
 
-1. **Inline run** (recommended for read-only agents like ds-reviewer): embody the agent spec in the main Claude session and execute steps directly
-2. **Skill wrapper**: wrap the agent spec inside `~/.claude/skills/<name>/SKILL.md` so it's invokable via the `Skill` tool
-3. **Manual handoff**: open a new Claude Code session, paste agent spec + scope, run interactively
+**Three workarounds** (all functional, just a bit manual):
 
-**Agent status in this repo**:
-- ✅ All three work via inline run
-- ❌ None work yet via `Agent` tool programmatic spawn
+1. **Simplest · let the main session embody it**
+   In a Claude Code session, paste the agent's content and ask the main session to "follow this spec." This works **best for read-only agents like ds-reviewer**, which don't need context isolation.
+
+2. **Wrap as a skill**
+   Put the agent spec inside `~/.claude/skills/<name>/SKILL.md` and invoke via a skill trigger.
+   Trade-off: execution semantics differ from a true subagent (skills aren't isolated processes).
+
+3. **Open a fresh session**
+   For context isolation, open a new Claude Code session and paste the agent spec + what you want it to do.
+
+**Will future migration hurt?**
+No. When Claude Code supports user-defined agent programmatic spawn, the existing agent specs **don't need to change** — you can flip the invocation method without rewriting anything.
 
 ---
 
@@ -144,19 +162,6 @@ Currently `v0.2.0` — sealed from a single dogfood reference run.
 - [ ] More starter scaffolds (different stacks: SvelteKit + Tailwind, Astro + UnoCSS, etc.)
 - [ ] Brand Book Skill integration (chisel output direct into `<repo>/brand/`)
 - [ ] N=2 dogfood run on a different product → distill v2 patterns
-
----
-
-## Why this repo exists
-
-Running multiple side projects as a solo founder, the recurring pain points are:
-- Brand docs scatter (vault / Notion / repo root / Figma comments)
-- Design system drifts from brand (spec changes don't sync to code, or vice versa)
-- Each new project reinvents the structure
-
-This repo distills one real run into: fixed folder structure + agent contract + starter scaffold + universal anti-patterns. From the second project onwards, it's a copy-and-adapt job.
-
-**Not a design system theory**. A grounded SOP that survived one real shipment.
 
 ---
 
