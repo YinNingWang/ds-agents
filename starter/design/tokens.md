@@ -1,20 +1,13 @@
 # Acme · Design Tokens · Theme × Palette Blueprint
-
 > Source of truth for `globals.css`. Replace `<TODO>` placeholders with real values.
-
 ## Architecture
-
 ```
 :root[data-theme="light|dark"]   ← surface / text / border / shadow
 :root[data-palette="<name>"]      ← brand-tinted vars (pub / priv / lens / halo)
 ```
-
 Two attributes orthogonal: theme doesn't affect palette, palette doesn't affect theme.
-
 ## Theme tokens
-
 ### Light
-
 ```css
 :root[data-theme="light"] {
   --background: 0 0% 100%;        /* #FFFFFF */
@@ -23,33 +16,25 @@ Two attributes orthogonal: theme doesn't affect palette, palette doesn't affect 
   --popover: 0 0% 100%;
   --muted: 0 0% 95%;
   --muted-foreground: 0 0% 36%;
-
   --surface: 0 0% 95%;
   --surface-2: 0 0% 91%;
   --bg-elev: 0 0% 100%;
-
   --text-primary: 0 0% 7%;
   --text-secondary: 0 0% 36%;
   --text-tertiary: 0 0% 60%;
   --on-accent: 0 0% 100%;
-
   --destructive: 0 84% 60%;       /* #EF4444 */
   --warning: 37 36% 56%;
-
   --shadow-card: 0 18px 50px rgba(0, 0, 0, 0.08);
 }
 ```
-
 ### Dark
-
 ```css
 :root[data-theme="dark"] {
   /* <TODO> dark mode mirror */
 }
 ```
-
 ## Palette tokens
-
 ```css
 :root[data-palette="default"] {
   --pub: <TODO>;
@@ -60,12 +45,9 @@ Two attributes orthogonal: theme doesn't affect palette, palette doesn't affect 
   --priv-halo: <TODO>;
   --lens: <TODO>;
 }
-
 /* Add more palettes as needed */
 ```
-
 ## Tailwind extend
-
 ```ts
 // tailwind.config.ts
 extend: {
@@ -90,11 +72,8 @@ extend: {
   },
 }
 ```
-
 ⚠ **Tailwind pitfall**: token MUST be written as `hsl(var(--X) / <alpha-value>)` not `hsl(var(--X))`. Missing the alpha placeholder silently disables opacity modifiers like `bg-pub/15`. See pattern `claude-design-handoff-flow.md` §Pattern 4 / Pattern 12.
-
 ## Usage conventions
-
 | Use case | Class |
 |---|---|
 | Page background | `bg-background text-text-primary` |
@@ -105,9 +84,7 @@ extend: {
 | Halo backdrop | `bg-pub-halo` (radial gradient) |
 | Soft chip | `bg-pub/15 text-pub` |
 | List items (no dividers) | `<ul className="space-y-2">` — NOT `divide-y` |
-
 ## Forbidden
-
 - `border-b` on list items (no dividers rule)
 - `divide-y` utility
 - Hardcoded hex (`bg-[#XXXXXX]`)

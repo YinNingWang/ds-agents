@@ -1,25 +1,43 @@
 # ds-agents — Claude Code 設計系統 agent
 
-> 給 solo founder / 小團隊用的 Claude Code agent + 跨專案 pattern。在 brand 跟 design 之間建立明確分工，讓 AI 寫 UI code 時自動 anchor 在你的品牌規則上。
+> 給 solo founder / 小團隊用的 Claude Code agent。在 brand 跟 design 之間建立明確分工，讓 AI 寫 UI code 時自動 anchor 在你的品牌規則上。
 >
 > English version → [README.en.md](./README.en.md)
 
-```
-agents/
-├── ds-designer.md      建立 + 維護 <repo>/design/guideline.md
-├── ds-reviewer.md      read-only 設計 QA，對照 guideline 跑 audit
-└── tdd-developer.md    TDD 方法論 + 自動載入設計 context
-patterns/
-├── brand-design-folder-pattern.md      <repo>/brand/ + <repo>/design/ 資料夾結構慣例
-├── refactor-workflow.md                6 階段 governance（搬檔 / 重組 / consolidate docs）
-├── stage-0-visual-audit-template.md    既有 codebase 對照 brand 視覺 drift 的 audit prompt
-├── claude-design-handoff-recipe.md     user-side playbook：怎麼下指令給 Claude Design + 怎麼接到 Claude Code
-└── claude-design-handoff-flow.md       從真實 handoff run 萃取的 33 條 pattern
-skills/
-└── _skill_design-handoff.md            Claude Design 端 skill spec（6-phase workflow）
-example/
-└── acme-product/                       fictional brand + design scaffold（給你照抄結構用）
-```
+---
+
+## 🚀 快速開始
+
+**這幾隻你可以先用看看，其他資料夾有必要再拉下來**：
+
+### 1. `agents/` — 三隻 agent（裝起來或載下來呼叫）
+
+- **`ds-designer.md`** → design guideline 建置設計師，design system 從 0 起手或維護時用
+- **`ds-reviewer.md`** → 都建完了，叫這隻 review 有沒有哪裡缺漏
+- **`tdd-developer.md`** → 工程師 agent，TDD 寫法 + 自動載入 design context。日常寫 feature 時用，遇到設計 gap 會自動 PAUSE 觸發 ds-designer。⚠ 註：這隻是從 RD 同事那拿來改的，**還沒實際 dogfood 過，當 experimental 看待**
+
+### 2. `skills/` — 兩個 prompt 餵給 AI 跑
+
+- **`_skill_design-handoff.md`** → 餵給 **Claude Design**，他會幫忙產比較完整的 PRD 包：先問你 codebase 在哪，讀完 codebase 的開發框架與命名方式，再產出更適合這個 codebase 的 `handoff.zip`，丟給 Claude Code 讀過就可以開發/套用設計
+- **`stage-0-visual-audit.md`** → 餵給 **Claude Code**，盤點既有 codebase 跟 brand 之間的視覺 drift。**只有「既有 codebase + brand 已存在」想知道差距時才用**
+
+### 3. `starter/` — design 系統的初始 scaffold
+
+從 0 開始建 design system 時，**整包 `starter/` 載下來放進你的 repo**（rename 成你的 product），之後 ds-designer 直接修改擴增使用。內含通用 anti-pattern + governance scaffold，省掉重複發明。
+
+---
+
+## 📋 三隻 agent + skills + starter 觸發時機表
+
+| 情境 | 用什麼 | 為什麼 |
+|---|---|---|
+| 剛 chisel 完 brand，要建 design system 起手 | **`starter/` (copy 進專案)** 或 **`ds-designer` M1 bootstrap** | starter = 快路（5 分鐘 copy + edit）；M1 = 訪談式（30-60 分鐘，更客製） |
+| 既有 codebase + brand 已存在，想盤點視覺 drift | **`skills/stage-0-visual-audit.md`**（貼進 Claude Code session） | 一次性 audit，產出 drift report 後再進 ds-designer |
+| design SoT 已建好，要寫一個 feature | **`tdd-developer`** | step 0 自動讀 guideline，TDD 寫 + 套既定 token / component |
+| 寫到一半發現 guideline 沒寫到這個 case | **`tdd-developer` 自動 escalate → `ds-designer` Drift Protocol** | tdd-developer 不替你發明 design decision，PAUSE → ds-designer 提 options → 你拍板 → 寫進 guideline + Decisions log → tdd-developer 繼續 |
+| PR pre-merge / 想 audit 一下既有 component | **`ds-reviewer`** | read-only，產 P0/P1/P2 報告，不會動 code |
+| 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接 |
+| 純 refactor 既有 code（不動 UI） | **`tdd-developer` 一個就好** | 沒 design 改動，不用 spawn ds-designer / ds-reviewer |
 
 ---
 
@@ -31,11 +49,11 @@ example/
 │   ├── brandbook.md       完整 brand book（Strategy + Voice + Personality）
 │   ├── pillars.md         4 axioms / archetype / verbs / manifesto 精煉版
 │   ├── evolution.md       brand 變更紀錄（含 active / pending / rejected / queue）
-│   ├── audit.md           自審報告（frozen by date）
+│   ├── audit.md           自審報告（frozen by date，optional）
 │   └── chisel-skill.md    brand chisel 方法論（meta，optional）
 ├── design/             ← 程式碼綁定的實作層
-│   ├── guideline.md       ★ Foundations / Components / Patterns / Principles 4 大段 schema
-│   ├── tokens.md          ★ CSS variable + Tailwind name 完整 spec
+│   ├── guideline.md       ★ Foundations / Components / Patterns / Principles 4 大段
+│   ├── tokens.md          ★ CSS variable + Tailwind name spec
 │   ├── README.md
 │   └── stage-0/           （optional）一次性 codebase audit 歷史
 └── src/...
@@ -45,6 +63,11 @@ example/
 
 - **brand/** = 策略身份。季 / 半年才更新一次。agent **不會寫**。跨 project 可整包搬走。
 - **design/** = 程式碼綁定的實作層。每個 PR 都可能動。ds-designer 寫，ds-reviewer 讀。
+
+### 不在這個 repo 提供的（你自己定義）
+
+- **Brand 內容** — brand chisel 是另一個工具的事（你可以用 [Brand Book Skill](https://github.com/YinNingWang) 或自己 chisel）。本 repo 不 vendoring brand 內容
+- **Develop guideline**（PR 流程 / commit message / branch 策略 / review checklist）— 屬於團隊治理，每個團隊不一樣。住在你的 `<repo>/CLAUDE.md` 或 `CONTRIBUTING.md`
 
 ---
 
@@ -58,32 +81,9 @@ cd ~/sandbox/ds-agents
 
 `install.sh` 會把 `agents/*.md` 複製到 `~/.claude/agents/`（Claude Code 的 user-level agent 目錄）。
 
-`patterns/` 是參考文件，**不會自動安裝**。讀完後決定哪些要套用 / 複製到你自己的 vault / wiki。
-
----
-
-## 怎麼用
-
-### 一個新 product 起手
-
-1. **先有 brand/** — 寫 `brand/brandbook.md`（Strategy + Voice + Personality）。怎麼來都行：自己 chisel、用 Brand Book Skill、既有 brand 文件搬進來。輸出位置固定 `<repo>/brand/`。
-
-2. **（選做）跑 Stage 0 audit** — 如果已有 codebase 且視覺跟 brand 有 drift，把 `patterns/stage-0-visual-audit-template.md` 整份貼進 Claude Code session，跑完輸出存 `<repo>/design/stage-0/audit-<產品名>.md`。
-
-3. **Spawn ds-designer 進 M1 (bootstrap) mode** — agent 讀 `brand/`、盤點既有 token / style、起草 `design/guideline.md` + `tokens.md` + `README.md`。途中會逼問你 undefined 的關鍵 essentials。
-
-4. **建好之後的日常**：
-   - 每個 UI / component PR → ds-designer enforce（M2 mode）
-   - 每個 pre-merge → ds-reviewer audit
-   - 任何設計 gap → Drift Protocol 把 decision 寫進 `guideline.md` `## Decisions log`
-   - 未決開放項 → `## Open items` table 跨 session 追蹤
-
-### Claude Design handoff（你同時用 Claude Design 雲端做視覺探索）
-
-如果你也用 Claude Design 跑視覺探索，產出要交給 Claude Code dev：
-- **User-side playbook**：`patterns/claude-design-handoff-recipe.md`（怎麼餵 brief 給 Claude Design + Claude Code 開 session 前該載什麼）
-- **Claude Design-side skill spec**：`skills/_skill_design-handoff.md`（Claude Design 跑這個 skill 的 6-phase workflow）
-- **Pattern catalog**：`patterns/claude-design-handoff-flow.md`（33 條從真實 handoff run 萃取的 pattern）
+`skills/` 跟 `starter/` **不會自動安裝**：
+- `skills/` 是 prompt template，要用時複製內容貼進 AI session
+- `starter/` 是 scaffold，要用時整包複製進你的 repo
 
 ---
 
@@ -95,28 +95,23 @@ cd ~/sandbox/ds-agents
 # <產品名> Design Guideline
 
 ## How to use this
-
 ## Foundations
   （token 架構、theme×palette、typography、spacing、motion）
-
 ## Components
   （Button、Section、Icon、Currency、Sheet…）
-
 ## Patterns
   （visual constraints R1-Rn、state pattern、互動 pattern）
-
 ## Principles
   （brand axioms pointer、voice pointer、anti-patterns、governance）
-
 ## PR Design Review Checklist
-
 ## References
-
 ## Decisions log     ← append-only，ds-designer Drift Protocol 寫入
 ## Open items        ← 活躍 backlog，ds-reviewer findings 寫入
 ```
 
 `design/tokens.md` **必須**包含 CSS variable 定義 + Tailwind extend snippet — 它是 `globals.css` 的 source of truth。
+
+→ `starter/design/guideline.md` 已內建這個 schema + 通用 anti-pattern，照抄即可。
 
 ---
 
@@ -128,13 +123,11 @@ cd ~/sandbox/ds-agents
 **目前可用的 3 條 workaround**：
 
 1. **Inline run（推薦給 read-only agent，例如 ds-reviewer）**：
-   主 Claude session 直接讀 agent spec、內化、按 spec 步驟執行。
-
+   主 Claude session 直接讀 agent spec、內化、按 spec 步驟執行
 2. **Skill wrapper**：
-   把 agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，透過 `Skill` tool 呼叫。trade-off：執行 semantics 不同（skill 不是隔離的 subagent）。
-
+   把 agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，透過 `Skill` tool 呼叫
 3. **Manual handoff**：
-   開新 Claude Code session，把 agent spec + scope 貼進去，互動執行。
+   開新 Claude Code session，把 agent spec + scope 貼進去，互動執行
 
 **本 repo 三隻 agent 的目前狀態**：
 - ✅ Inline run 全部可用
@@ -143,32 +136,22 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## 相容性
-
-- **Claude Code**：dogfood 跑在 `claude-opus-4-7`（1M context）。agent 自己的 frontmatter 寫 model（opus-4-7 / sonnet-4-6）
-- **產品技術棧**：本身 stack-agnostic，但 patterns 用 Next.js + Tailwind + shadcn 當範例（reference run 的棧）
-- **Vault / wiki**：原始 patterns 用 Obsidian wikilink `[[...]]`，repo 內已 sanitize 成純 markdown。如果你維護 Obsidian vault，可以另外存一份 wikilink 版
-
----
-
 ## 版本管理
 
-repo 走寬鬆 semver：
-
 - **patch** (`v0.1.x`) — 字句修
-- **minor** (`v0.x.0`) — 新 agent / pattern / additive 改動
+- **minor** (`v0.x.0`) — 新 agent / skill / starter / additive 改動
 - **major** (`v1.0.0`) — schema 破壞（例如 guideline.md 章節名要求變動）
 
-目前 `v0.1.0` — sealed from reference run dogfood（2026-05-28）。
+目前 `v0.2.0` — sealed from 一次 dogfood reference run。
 
 ---
 
 ## Roadmap
 
-- [ ] 每隻 agent 各包一個 Skill wrapper（程式化 spawn workaround，見「已知限制」段）
-- [ ] Cross-project 測試 harness — 用固定 snapshot 的範例 codebase 跑 ds-reviewer
-- [ ] 更多 example product（不同 stack：SvelteKit + Tailwind、Astro + UnoCSS 等）
-- [ ] Brand Book Skill 整合（chisel 完直接輸出進 `<repo>/brand/`）
+- [ ] 每隻 agent 各包一個 Skill wrapper（程式化 spawn workaround）
+- [ ] Cross-project 測試 harness — 用固定 snapshot 範例 codebase 跑 ds-reviewer
+- [ ] 更多 starter scaffold 變體（不同 stack：SvelteKit + Tailwind、Astro + UnoCSS 等）
+- [ ] Brand Book Skill 整合：chisel 完直接輸出進 `<repo>/brand/`
 - [ ] N=2 dogfood run 在不同 product → 萃出 v2 patterns
 
 ---
@@ -180,7 +163,7 @@ solo founder 跑多個 side project 時，最痛的點是：
 - design system 跟 brand 反覆 drift（spec 改了 code 沒同步、或反過來）
 - 每個新 project 都要重新發明結構
 
-這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + governance pattern。從第二個 project 開始就可以直接套用。
+這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + starter scaffold + 通用 anti-pattern。從第二個 project 開始就可以直接套用。
 
 **這不是設計系統理論**。是「實際跑過後留下的接地氣 SOP」。
 
@@ -189,9 +172,9 @@ solo founder 跑多個 side project 時，最痛的點是：
 ## 貢獻
 
 歡迎的 PR：
-- 加上你自己 product 的 reference run（脫敏後）擴充 pattern catalog
-- 把 example 泛化到不同 stack 但保留具體 actionability
+- 不同 stack 的 starter scaffold 變體
 - 新增符合 brand/+design/ 合約的 agent
+- starter 通用 anti-pattern / governance 補充
 
 ---
 
