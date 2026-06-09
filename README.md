@@ -12,7 +12,7 @@
 
 - **`ds-designer.md`** → design guideline 建置設計師，design system 從 0 起手或維護時用
 - **`ds-reviewer.md`** → 都建完了，叫這隻 review 有沒有哪裡缺漏
-- **`tdd-developer.md`** → 工程師 agent，TDD 寫法 + 自動載入 design context。日常寫 feature 時用，遇到設計 gap 會自動 PAUSE 觸發 ds-designer。⚠ 註：這隻是從 RD 同事那拿來改的，**還沒實際 dogfood 過，當 experimental 看待**
+- **`tdd-developer.md`** → 工程師 agent，TDD 寫法 + 自動載入 design context。適合有明確 input→output 的 feature（API / schema / DB / 邏輯），遇到設計 gap 會自動 PAUSE 觸發 ds-designer。
 
 ### 2. `skills/` — 兩個 prompt 餵給 AI 跑
 

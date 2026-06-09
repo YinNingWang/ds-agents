@@ -12,7 +12,7 @@ Three Claude Code agents + a starter scaffold + two skills for solo founders & s
 
 - **`ds-designer.md`** → builds & maintains `<repo>/design/guideline.md`. Spawn when bootstrapping or maintaining a design system.
 - **`ds-reviewer.md`** → read-only design QA. Spawn after a feature is built / pre-merge.
-- **`tdd-developer.md`** → engineering agent with TDD discipline + auto-loads design context. Used during daily feature work. PAUSEs and escalates to ds-designer when it hits a design gap. ⚠ Note: borrowed from an RD colleague's setup, **not yet personally dogfooded — treat as experimental**.
+- **`tdd-developer.md`** → engineering agent with TDD discipline + auto-loads design context. Best for features with a clear input→output (API / schema / DB / logic); PAUSEs and escalates to ds-designer on a design gap.
 
 ### 2. `skills/` — two prompts you paste into an AI session
 
