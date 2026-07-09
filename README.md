@@ -26,6 +26,21 @@
 
 ---
 
+## 🗺️ 何時用哪隻（一眼看）
+
+```mermaid
+flowchart LR
+  A["建 / 維護 design SoT<br/>ds-designer"] --> B["寫 feature code · TDD<br/>tdd-developer"]
+  B -. design gap 回頭 .-> A
+  B --> C["pre-merge QA · 唯讀<br/>ds-reviewer"]
+  C --> D["定案後 code→Figma 存檔 · standalone<br/>ds-figma-archivist"]
+```
+
+- **ds-designer** — 建 / 維護 design SoT（`design/guideline.md`）。從 0 起手或有 drift 時。
+- **tdd-developer** — 依 SoT 寫 feature（TDD）；遇 design gap 自動回頭觸發 ds-designer。
+- **ds-reviewer** — pre-merge 唯讀 QA，對 guideline 出 P0/P1/P2。
+- **ds-figma-archivist** — 一個 surface **定案後**把 code 建回 Figma 存檔；standalone、不進上面 pipeline。
+
 ## 📋 四隻 agent + skills + starter 觸發時機表
 
 | 情境 | 用什麼 | 為什麼 |
