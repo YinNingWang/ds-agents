@@ -8,7 +8,7 @@
 
 ## 🚀 快速開始
 
-### 1. `agents/` — 三隻 agent（裝起來或載下來呼叫）
+### 1. `agents/` — 四隻 agent（裝起來或載下來呼叫）
 
 - **`ds-designer.md`** → design guideline 建置設計師，design system 從 0 起手或維護時用
 - **`ds-reviewer.md`** → 都建完了，叫這隻 review 有沒有哪裡缺漏
@@ -26,7 +26,7 @@
 
 ---
 
-## 📋 三隻 agent + skills + starter 觸發時機表
+## 📋 四隻 agent + skills + starter 觸發時機表
 
 | 情境 | 用什麼 | 為什麼 |
 |---|---|---|
@@ -38,6 +38,40 @@
 | 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接 |
 | 純 refactor 既有 code（不動 UI） | **`tdd-developer` 一個就好** | 沒 design 改動，不用 spawn ds-designer / ds-reviewer |
 | 一個 surface **定案了**，Figma 退場前想把 code 建回 Figma 存檔 | **`ds-figma-archivist`** | code→Figma 是「寫進外部工具」的新方向，塞進唯讀的 ds-reviewer / code 側的 ds-designer 會破壞定位；薄殼靠 Figma MCP，不從零造、不進 pipeline |
+
+---
+
+## 🧭 ds-figma-archivist 運作機制
+
+```mermaid
+flowchart LR
+  You(["You / orchestrator"]) -->|spawn + scope| A["ds-figma-archivist<br/>(thin agent)"]
+  subgraph reads["agent reads — never guesses"]
+    PB["playbook<br/>method · the questions"]
+    SoT["project SoT<br/>design/figma-archive.md · the answers"]
+    DT["dev-truth<br/>screenshots + computed metrics"]
+  end
+  PB --> A
+  SoT --> A
+  DT --> A
+  Code["running app<br/>(code = source of truth)"] --> FW["flow-walker<br/>harness + project config"]
+  FW -->|force each UI state| DT
+  A -->|use_figma| MCP["Figma MCP"]
+  MCP -->|reuse DS components · write frames| FIG["Figma file<br/>(design-of-record archive)"]
+  A -. build .-> CR["independent critic<br/>(objective metrics diff)"]
+  CR -. divergences → fix .-> A
+```
+
+四個零件、各就各位：
+
+- **agent（薄）** (`agents/`) — 只 orchestrate；讀 playbook + 專案 SoT + dev-truth，驅動 Figma MCP。不含深度。
+- **playbook** (`references/`) — 通用方法 / 問句（第一性原則 + Figma MCP call-shape appendix）。跨專案。
+- **專案 SoT** (`<repo>/design/figma-archive.md`) — 該產品的答案（file key / components / frame sizes / 決策）。跨 session。
+- **flow-walker** (`tools/`) — 通用 harness + 專案 config，驅動 app 產 dev-truth（截圖 + computed metrics，供「量而非估」）。
+
+> playbook 載問句、專案 SoT 載答案、flow-walker 供 dev 真相、agent 組進 Figma、獨立 critic 客觀驗。
+
+**安裝為什麼 `~/.claude/` 看不到全部（刻意，不是漏裝）**：`install.sh` 裝 `agents/` → `~/.claude/agents/`、`references/` → `~/.claude/references/`（agent 執行時要能從**任何 cwd** 讀到 playbook，故裝固定路徑）；**`tools/` 不裝** —— harness 是你 / orchestrator 從 repo 跑（`npm install` 一次）產 dev-truth，**agent 本身不讀它**。分工一句話：agent **讀**的東西才裝、**跑**的工具留 repo。
 
 ---
 
@@ -92,9 +126,12 @@ cd ~/sandbox/ds-agents
 ./install.sh
 ```
 
-`install.sh` 會把 `agents/*.md` 複製到 `~/.claude/agents/`（Claude Code 的 user-level agent 目錄）。
+`install.sh` 會裝兩樣（見上「運作機制」的分工說明）：
+- `agents/*.md` → `~/.claude/agents/`（Claude Code 的 user-level agent 目錄）
+- `references/*.md` → `~/.claude/references/`（agent 執行時讀的 method playbook，需固定路徑才能從任何 cwd 讀到）
 
-`skills/` 跟 `starter/` **不會自動安裝**：
+`tools/`、`skills/`、`starter/` **不會自動安裝**：
+- `tools/`（flow-walker capture harness）從 repo 跑（`cd tools/flow-walker && npm install`）——agent 不讀它，是產 dev-truth 的工具
 - `skills/` 是 prompt template，要用時複製內容貼進 AI session
 - `starter/` 是 scaffold，要用時整包複製進你的 repo
 
@@ -130,9 +167,11 @@ cd ~/sandbox/ds-agents
 
 ## ⚠ 一個現在還不方便的地方
 
-**白話版**：理論上 Claude Code 應該可以「主 session 自動把你自定義的 agent 叫起來跑」，但目前還沒支援。所以本 repo 的三隻 agent **沒辦法用 `Agent` tool 一鍵 spawn**，需要繞一下。
+> **[更新 2026-07] 此限制已大致解除** — Claude Code 現已支援 user-defined agent 經 `Agent` tool 的 `subagent_type` 程式化 spawn（本 repo agent 實測可直接叫）。以下 workaround 留作歷史 / 降級參考。
 
-具體狀況：Claude Code 內建 6 隻 agent（claude / Explore / Plan 等）能被程式呼叫，但 `~/.claude/agents/` 下你自己放的 agent（包含本 repo 這三隻）暫時還不能這樣自動 spawn。
+**白話版**：理論上 Claude Code 應該可以「主 session 自動把你自定義的 agent 叫起來跑」，早期還沒支援。所以本 repo 的四隻 agent 曾**沒辦法用 `Agent` tool 一鍵 spawn**，需要繞一下。
+
+具體狀況（歷史）：Claude Code 內建 6 隻 agent（claude / Explore / Plan 等）能被程式呼叫，但 `~/.claude/agents/` 下你自己放的 agent（包含本 repo 這四隻）當時還不能這樣自動 spawn。
 
 **目前的 3 個解法**（沒到不能用，只是手動一點）：
 
