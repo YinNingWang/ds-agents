@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# install.sh — copy ds-agents to ~/.claude/agents/
+# install.sh — install ds-agents into ~/.claude/
+#   agents/*.md      → ~/.claude/agents/       (skip-on-diff, protects local edits)
+#   references/*.md  → ~/.claude/references/   (overwrite, the method playbooks agents Read at runtime)
+# tools/ is NOT installed — those are run from the repo, not read by an agent.
 #
 # Idempotent. Run again to re-sync after pulling repo updates.
 
@@ -32,6 +35,21 @@ for f in "$SCRIPT_DIR/agents/"*.md; do
     echo "  ✓  $name (installed)"
   fi
 done
+
+# --- references: method playbooks the agents Read at runtime (must be reachable
+#     from any cwd, so they install to a fixed path the agent references absolutely) ---
+if [ -d "$SCRIPT_DIR/references" ]; then
+  REF_TARGET="$HOME/.claude/references"
+  mkdir -p "$REF_TARGET"
+  echo ""
+  echo "Installing references to $REF_TARGET"
+  for f in "$SCRIPT_DIR/references/"*.md; do
+    [ -e "$f" ] || continue
+    name=$(basename "$f")
+    cp "$f" "$REF_TARGET/$name"   # overwrite: keep in sync with the repo
+    echo "  ✓  $name"
+  done
+fi
 
 echo ""
 echo "Done. Agents available at $TARGET"

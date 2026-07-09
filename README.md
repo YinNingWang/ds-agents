@@ -13,6 +13,7 @@
 - **`ds-designer.md`** → design guideline 建置設計師，design system 從 0 起手或維護時用
 - **`ds-reviewer.md`** → 都建完了，叫這隻 review 有沒有哪裡缺漏
 - **`tdd-developer.md`** → 工程師 agent，TDD 寫法 + 自動載入 design context。適合有明確 input→output 的 feature（API / schema / DB / 邏輯），遇到設計 gap 會自動 PAUSE 觸發 ds-designer。
+- **`ds-figma-archivist.md`** → 把**定案**的 code 畫面重建回 Figma 存檔（Figma 退場前留 design-of-record），薄殼 orchestrate 既有 Figma MCP + 套現有 DS library。**standalone，不進 pipeline**、只在定案後手動叫。
 
 ### 2. `skills/` — 兩個 prompt 餵給 AI 跑
 
@@ -36,6 +37,7 @@
 | PR pre-merge / 想 audit 一下既有 component | **`ds-reviewer`** | read-only，產 P0/P1/P2 報告，不會動 code |
 | 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接 |
 | 純 refactor 既有 code（不動 UI） | **`tdd-developer` 一個就好** | 沒 design 改動，不用 spawn ds-designer / ds-reviewer |
+| 一個 surface **定案了**，Figma 退場前想把 code 建回 Figma 存檔 | **`ds-figma-archivist`** | code→Figma 是「寫進外部工具」的新方向，塞進唯讀的 ds-reviewer / code 側的 ds-designer 會破壞定位；薄殼靠 Figma MCP，不從零造、不進 pipeline |
 
 ---
 

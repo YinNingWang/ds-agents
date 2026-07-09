@@ -1,0 +1,16 @@
+{
+  "name": "flow-walker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Project-agnostic UI-state capture harness (Playwright): screenshots + computed-geometry metrics per state × viewport.",
+  "bin": {
+    "flow-walker": "flow-walker.mjs"
+  },
+  "scripts": {
+    "walk": "node flow-walker.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
