@@ -30,29 +30,26 @@
 
 ```mermaid
 flowchart LR
-  A["建 / 維護 design SoT<br/>ds-designer"] --> B["寫 feature code · TDD<br/>tdd-developer"]
-  B -. design gap 回頭 .-> A
-  B --> C["pre-merge QA · 唯讀<br/>ds-reviewer"]
-  C --> D["定案後 code→Figma 存檔 · standalone<br/>ds-figma-archivist"]
+  A["design SoT + UI feature<br/>ds-designer"] --> C
+  B["邏輯/資料 feature · refactor<br/>tdd-developer"] --> C
+  B -. design gap .-> A
+  C["pre-merge QA · 唯讀<br/>ds-reviewer"] --> D["定案後 code→Figma · standalone<br/>ds-figma-archivist"]
 ```
 
-- **ds-designer** — 建 / 維護 design SoT（`design/guideline.md`）。從 0 起手或有 drift 時。
-- **tdd-developer** — 依 SoT 寫 feature（TDD）；遇 design gap 自動回頭觸發 ds-designer。
+- **ds-designer** — 建 / 維護 design SoT（`design/guideline.md`）**＋ UI / component feature**（M2 enforce、套既有 token/component）。
+- **tdd-developer** — **邏輯 / 資料 feature ＋ 純 refactor**（不動 UI、input→output、TDD）；遇 design gap 自動回頭觸發 ds-designer。
 - **ds-reviewer** — pre-merge 唯讀 QA，對 guideline 出 P0/P1/P2。
 - **ds-figma-archivist** — 一個 surface **定案後**把 code 建回 Figma 存檔；standalone、不進上面 pipeline。
 
-## 📋 四隻 agent + skills + starter 觸發時機表
+## 📋 skills / starter / 起手選擇（圖沒涵蓋的）
+
+> agent 之間「何時用哪隻」看上面的圖。此表只列圖畫不出來的 skills / starter / 起手選擇。
 
 | 情境 | 用什麼 | 為什麼 |
 |---|---|---|
 | 剛 chisel 完 brand，要建 design system 起手 | **`starter/` (copy 進專案)** 或 **`ds-designer` M1 bootstrap** | starter = 快路（5 分鐘 copy + edit）；M1 = 訪談式（30-60 分鐘，更客製） |
 | 既有 codebase + brand 已存在，想盤點視覺 drift | **`skills/stage-0-visual-audit.md`**（貼進 Claude Code session） | 一次性 audit，產出 drift report 後再進 ds-designer |
-| design SoT 已建好，要寫一個 feature | **`tdd-developer`** | step 0 自動讀 guideline，TDD 寫 + 套既定 token / component |
-| 寫到一半發現 guideline 沒寫到這個 case | **`tdd-developer` 自動 escalate → `ds-designer` Drift Protocol** | tdd-developer 不替你發明 design decision，PAUSE → ds-designer 提 options → 你拍板 → 寫進 guideline + Decisions log → tdd-developer 繼續 |
-| PR pre-merge / 想 audit 一下既有 component | **`ds-reviewer`** | read-only，產 P0/P1/P2 報告，不會動 code |
 | 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接 |
-| 純 refactor 既有 code（不動 UI） | **`tdd-developer` 一個就好** | 沒 design 改動，不用 spawn ds-designer / ds-reviewer |
-| 一個 surface **定案了**，Figma 退場前想把 code 建回 Figma 存檔 | **`ds-figma-archivist`** | code→Figma 是「寫進外部工具」的新方向，塞進唯讀的 ds-reviewer / code 側的 ds-designer 會破壞定位；薄殼靠 Figma MCP，不從零造、不進 pipeline |
 
 ---
 
