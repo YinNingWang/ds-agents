@@ -1,6 +1,6 @@
 # ds-agents — Design System Agents for Claude Code
 
-> Claude Code agents for solo founders / small teams. They set a clear division of labour between **brand** and **design**, so AI anchors on your brand rules whenever it writes UI code — and once a surface is finalized, archives the code back into Figma.
+> Claude Code agents for solo founders / small teams. They set a clear division of labour between **brand** and **design**, so AI follows your brand rules whenever it writes UI — and once a screen is finalized, archives the result back into Figma.
 >
 > 中文版 → [README.md](./README.md)
 
@@ -10,23 +10,23 @@
 
 Every time you spin up a new side project, somewhere mid-build you wonder:
 
-- "Where do my brand rules actually live? vault? Notion? repo root? or only in Figma comments?"
+- "Where do my brand rules actually live? scattered in Notion? in the repo? or only in Figma comments?"
 - "This component the AI wrote — are the colors and spacing from my brand, or did it just make them up?"
 - "The spec changed last week and the code didn't follow — which one is authoritative now?"
 - "Every new project I re-scaffold the same folders. Tedious."
 
-These aren't the AI being weak — it just **doesn't know where your brand rules live or which one to obey**. ds-agents pins that down: a fixed folder layout + a clear division of labour between agents, so AI **anchors on your brand** whenever it writes code.
+These aren't the AI being weak — it just **doesn't know where your brand rules live or which one to obey**. ds-agents pins that down: a fixed folder layout + a clear division of labour between agents, so AI **follows your brand** whenever it writes code.
 
-This repo distills one real run into a fixed folder structure + agent contract + universal design knowledge (`references/`). **Not design-system theory** — a grounded SOP that survived one real shipment. From the second project onwards it's copy-and-adapt.
+This repo captures one real run: a fixed folder structure + a clear division of labour between agents + universal design knowledge (`references/`). **Not design-system theory** — a grounded SOP that survived one real shipment. From the second project onwards it's copy-and-adapt.
 
 ---
 
 ## What you get after installing
 
 - **AI writes UI aligned to your brand** — ds-designer reads your `design/guideline.md` before touching a component; no more made-up color values, spacing, radii
-- **Drift gets caught** — when spec and code diverge, ds-reviewer flags it before merge (P0/P1/P2)
-- **New projects start in seconds** — fixed schema + seeded universal knowledge; you only fill product-specific `<TODO>`s
-- **Finalized code archives back to Figma** — once a surface is locked, rebuild the code into Figma as a design-of-record
+- **Out-of-sync gets caught** — when spec and code diverge, ds-reviewer flags it before merge (P0/P1/P2)
+- **New projects start in seconds** — fixed format + universal knowledge already filled in; you only add product-specific `<TODO>`s
+- **Finalized code archives back to Figma** — once a screen is locked, rebuild the code into Figma as the official design of record
 
 ---
 
@@ -34,8 +34,8 @@ This repo distills one real run into a fixed folder structure + agent contract +
 
 The two things most beginners confuse in Claude Code. In one line:
 
-- **agent** = an **executor with its own identity and system prompt**. You (or the main session) hand it a task; it runs in isolated context and reports back. That's mainly what ds-agents is — the four: `ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist`.
-- **skill** = an **instruction / knowledge template loaded into the current session when triggered**, telling whoever's running to "follow this SOP" (some skills can also run in a subagent).
+- **agent** = an **executor with its own identity and system prompt**. You (or the main session) hand it a task; it runs in its own isolated space and reports back. That's mainly what ds-agents is — the four: `ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist`.
+- **skill** = an **instruction / knowledge template loaded into the current session when triggered**, telling whoever's running to "follow these steps" (some skills can also run inside a separate agent).
 
 This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **skill templates** (prompt templates, copy-paste when needed, not auto-installed). Which agent to call when → see "Which agent, when?" below.
 
@@ -66,7 +66,7 @@ This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **
 
 ### Out of scope for this repo (define your own)
 
-- **Brand content** — brand chisel is a separate tool's job (use Brand Book Skill or chisel your own). This repo does not vendor brand content.
+- **Brand content** — defining your brand is a separate tool's job (use Brand Book Skill or do it yourself). This repo does not bundle brand content.
 - **Develop guideline** (PR flow / commit format / branch strategy / review checklist) — team governance, varies per team. Lives in your `<repo>/CLAUDE.md` or `CONTRIBUTING.md`.
 
 ---
@@ -92,7 +92,7 @@ flowchart LR
 
 | Situation | Use | Why |
 |---|---|---|
-| Just chiseled brand, bootstrapping a design system | **`ds-designer` M1 bootstrap** | interview-style guideline build, seeds universal knowledge, you only fill product-specific `<TODO>` (details in Schema) |
+| Just finished defining your brand, starting a design system | **`ds-designer` M1 bootstrap** | interview-style guideline build, seeds universal knowledge, you only fill product-specific `<TODO>` (details in Schema) |
 | Visual exploration via Claude Design, handing off to Claude Code dev | **`skills/_skill_design-handoff.md`** (feed to Claude Design) | Claude Design runs a 6-phase workflow to produce a handoff bundle for Claude Code (cross-tool, agents can't replace it) |
 
 ---
@@ -218,8 +218,8 @@ Four parts, each in its place:
 ## What's coming next?
 
 - [ ] Cross-project test harness — run ds-reviewer against a fixed-snapshot example codebase
-- [ ] Brand Book Skill integration: chisel output direct into `<repo>/brand/`
-- [ ] N=2 dogfood on a different product (incl. flow-walker config) → distill v2 patterns + a universal config template
+- [ ] Brand Book Skill integration: brand-definition output direct into `<repo>/brand/`
+- [ ] Run it for real on a second product (incl. flow-walker config) → distill v2 patterns + a universal config template
 
 ---
 
@@ -244,7 +244,7 @@ Built-ins are general assistants; these four are **bound to the `brand/` + `desi
 `brand/` is portable as a bundle (strategic identity is cross-project); `design/` is per-product, rebuilt via ds-designer M1 bootstrap against the schema. The agents themselves live globally in `~/.claude/`, so no reinstall.
 
 **Q: Do I need a brand book first?**
-No. With no guideline, ds-designer runs M1 bootstrap to build it interview-style; brand chisel is a separate tool's job (see Out of scope).
+No. With no guideline, ds-designer runs M1 bootstrap to build it interview-style; defining your brand is a separate tool's job (see Out of scope).
 
 ---
 
