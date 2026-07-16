@@ -101,36 +101,28 @@ flowchart LR
 
 兩種裝法，選一種就好。
 
-**方法 1 · 貼一段 prompt（推薦，免 git）**
+**方法 1 · 貼一段就好（推薦，免 git）**
 
-把下面整段複製、貼給 Claude Code，它會直接抓檔寫進 `~/.claude/`，不用 clone repo：
+複製下面整段貼給 Claude Code：
 
 ```
-幫我安裝 ds-agents（Claude Code 的設計系統 agent）。請照下面規則做，不要 clone repo：
+幫我把 ds-agents 裝進 Claude Code：下列 agents 檔抓到 ~/.claude/agents/、references 檔抓到 ~/.claude/references/（同名檔已存在就先備份再覆蓋）。
 
-要裝的檔案（從 GitHub raw 抓）：
-· agents → 寫到 ~/.claude/agents/
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-designer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-reviewer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/tdd-developer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-figma-archivist.md
-· references → 寫到 ~/.claude/references/
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/ds-design-universals.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/figma-archivist-playbook.md
+agents:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-designer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-reviewer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/tdd-developer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-figma-archivist.md
 
-安裝規則（跟官方 install.sh 一致）：
-1. 先建目錄：~/.claude/agents 與 ~/.claude/references。
-2. agents：保護我的在地修改——目標檔已存在且內容不同，先備份成 <name>.bak.<時間戳> 再問我要不要覆蓋，別默默蓋；不存在才直接寫入。
-3. references：直接覆蓋（它們是跟 repo 同步的 method playbook，本該被最新版蓋過）；覆蓋前先把整個 ~/.claude/references/ 備份一份。
-4. 每個檔照原樣寫入，含 YAML frontmatter，別改內容。
-5. 裝完用白話文條列：哪些新增、哪些跳過或備份、路徑在哪，並提醒我重開一個 Claude Code 對話才會抓到新 agent。
-6. 以上沒涵蓋的狀況，照「agents 保護在地、references 跟 repo 同步」原則自行判斷。
+references:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/ds-design-universals.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/figma-archivist-playbook.md
 ```
 
 **方法 2 · git clone（想在本機留一份 repo 的人）**
 
 ```bash
-git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
+git clone https://github.com/ning-wy/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```

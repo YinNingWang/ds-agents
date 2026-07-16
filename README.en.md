@@ -101,36 +101,28 @@ flowchart LR
 
 Two ways — pick one.
 
-**Method 1 · paste a prompt (recommended, no git)**
+**Method 1 · just paste this (recommended, no git)**
 
-Copy the whole block below and paste it to Claude Code; it fetches the files straight into `~/.claude/` — no repo to clone:
+Copy the whole block below and paste it to Claude Code:
 
 ```
-Install ds-agents (design-system agents for Claude Code). Follow these rules; do NOT clone the repo:
+Install ds-agents into my Claude Code: fetch the agents files into ~/.claude/agents/ and the references files into ~/.claude/references/ (if a file already exists, back it up before overwriting).
 
-Files to install (fetch from GitHub raw):
-· agents → write to ~/.claude/agents/
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-designer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-reviewer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/tdd-developer.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-figma-archivist.md
-· references → write to ~/.claude/references/
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/ds-design-universals.md
-  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/figma-archivist-playbook.md
+agents:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-designer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-reviewer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/tdd-developer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-figma-archivist.md
 
-Install rules (matching the official install.sh):
-1. Create the dirs first: ~/.claude/agents and ~/.claude/references.
-2. agents: protect my local edits — if a target file exists and differs, back it up as <name>.bak.<timestamp> and ask me before overwriting; never clobber silently. Write directly only if it doesn't exist yet.
-3. references: overwrite (they are method playbooks kept in sync with the repo, meant to be replaced by the latest); back up the whole ~/.claude/references/ before overwriting.
-4. Write each file verbatim, including YAML frontmatter — don't edit the content.
-5. When done, summarize in plain language: what was added, what was skipped or backed up, where it lives, and remind me to open a new Claude Code conversation before the new agents are picked up.
-6. For anything not covered above, follow the principle "agents protect local edits, references sync with the repo."
+references:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/ds-design-universals.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/figma-archivist-playbook.md
 ```
 
 **Method 2 · git clone (if you'd rather keep a repo on disk)**
 
 ```bash
-git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
+git clone https://github.com/ning-wy/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```
