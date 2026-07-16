@@ -37,11 +37,11 @@
 - **agent** = 一個**有獨立身份、自己一套 system prompt 的執行者**。你（或主 session）把任務丟給它，它用獨立 context 跑完再回報。ds-agents 主要就是這個——`ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist` 四隻。
 - **skill** = 一段**被觸發時載入當前 session 的指令 / 知識模板**，讓當下的執行者「照這套 SOP 做」（有些 skill 也能在 subagent 跑）。
 
-這個 repo **裝的是 agents**（進 `~/.claude/agents/`）；另附幾個 **skill 模板**（prompt template，要用時複製貼上，不自動裝）。什麼時候該叫哪隻 agent，看下面〈何時用哪隻〉。
+這個 repo **裝的是 agents**（進 `~/.claude/agents/`）；另附幾個 **skill 模板**（prompt template，要用時複製貼上，不自動裝）。什麼時候該叫哪隻 agent，看下面〈什麼時候用哪一隻〉。
 
 ---
 
-## 概念
+## 它長怎樣？兩個資料夾
 
 ```
 <你的產品 repo>/
@@ -71,7 +71,7 @@
 
 ---
 
-## 🗺️ 何時用哪隻（一眼看）
+## 🗺️ 什麼時候用哪一隻？（一眼看）
 
 ```mermaid
 flowchart LR
@@ -86,7 +86,7 @@ flowchart LR
 - **ds-reviewer** — pre-merge 唯讀 QA，對 guideline 出 P0/P1/P2。
 - **ds-figma-archivist** — 一個 surface **定案後**把 code 建回 Figma 存檔；standalone、不進上面 pipeline（機制見下）。
 
-## 📋 skills + 起手（圖沒涵蓋的）
+## 📋 剛起步該從哪開始？（圖沒畫到的）
 
 > agent 之間「何時用哪隻」看上面的圖。此表只列圖畫不出來的起手 / skill。
 
@@ -97,7 +97,7 @@ flowchart LR
 
 ---
 
-## 安裝
+## 怎麼裝？
 
 ```bash
 git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
@@ -117,7 +117,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## Schema 合約（重要 — agent 認的是這個）
+## guideline 要長怎樣？（agent 認這個 schema）
 
 `design/guideline.md` **必須**用以下 schema，ds-designer / ds-reviewer 才能 work：
 
@@ -145,7 +145,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## 🧭 ds-figma-archivist 運作機制
+## 🧭 ds-figma-archivist 怎麼運作？
 
 ```mermaid
 flowchart LR
@@ -177,19 +177,7 @@ flowchart LR
 
 ---
 
-## ⚠ 一個歷史限制（已解除）
-
-> **[更新 2026-07] 已大致解除** — Claude Code 現已支援 user-defined agent 經 `Agent` tool 的 `subagent_type` 程式化 spawn（本 repo agent 實測可直接叫）。以下留作歷史 / 降級參考。
-
-早期 Claude Code 還不支援「主 session 自動把自定義 agent 叫起來跑」，本 repo agent 曾需繞道。降級 workaround（現多半用不到）：
-
-1. **讓主 session 內化執行** — 把 agent 內容貼進 session，請它「照這份 spec 做事」。對 ds-reviewer 這種純讀檔產報告的最順。
-2. **包一層 skill 叫** — agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，用 skill 觸發（semantics 跟真 subagent 不同）。
-3. **另開 session 跑** — 為 context 隔離，開新 session 貼 spec + 任務互動執行。
-
----
-
-## 版本管理
+## 版本怎麼編？
 
 - **patch** (`v0.1.x`) — 字句修
 - **minor** (`v0.x.0`) — 新 agent / skill / reference / additive 改動
@@ -197,7 +185,7 @@ flowchart LR
 
 ---
 
-## Roadmap
+## 接下來會做什麼？
 
 - [ ] Cross-project 測試 harness — 用固定 snapshot 範例 codebase 跑 ds-reviewer
 - [ ] Brand Book Skill 整合：chisel 完直接輸出進 `<repo>/brand/`
@@ -205,7 +193,7 @@ flowchart LR
 
 ---
 
-## 貢獻
+## 想一起貢獻？
 
 歡迎的 PR：
 - 新增符合 brand/+design/ 合約的 agent
@@ -217,7 +205,7 @@ flowchart LR
 ## 常見問題
 
 **Q：我一定要跑 `install.sh` 嗎？**
-要——如果你想讓 agent 從任何專案都叫得到。它只做兩件事：把 `agents/*.md` 複製進 `~/.claude/agents/`、把 `references/*.md` 複製進 `~/.claude/references/`。`tools/` 跟 `skills/` 刻意不裝（理由見〈安裝〉）。
+要——如果你想讓 agent 從任何專案都叫得到。它只做兩件事：把 `agents/*.md` 複製進 `~/.claude/agents/`、把 `references/*.md` 複製進 `~/.claude/references/`。`tools/` 跟 `skills/` 刻意不裝（理由見〈怎麼裝〉）。
 
 **Q：這些 agent 跟 Claude Code 內建的 `/agents` 差在哪？**
 內建的是通用助手；這 repo 的四隻是**綁定 `brand/` + `design/` 合約**的專用 agent——ds-designer 寫 code 前強制讀你的 guideline、ds-reviewer 照 guideline 逐條 audit。差別在「認得你的品牌規則」。

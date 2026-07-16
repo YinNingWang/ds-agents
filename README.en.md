@@ -37,11 +37,11 @@ The two things most beginners confuse in Claude Code. In one line:
 - **agent** = an **executor with its own identity and system prompt**. You (or the main session) hand it a task; it runs in isolated context and reports back. That's mainly what ds-agents is — the four: `ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist`.
 - **skill** = an **instruction / knowledge template loaded into the current session when triggered**, telling whoever's running to "follow this SOP" (some skills can also run in a subagent).
 
-This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **skill templates** (prompt templates, copy-paste when needed, not auto-installed). Which agent to call when → see "When to use which" below.
+This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **skill templates** (prompt templates, copy-paste when needed, not auto-installed). Which agent to call when → see "Which agent, when?" below.
 
 ---
 
-## Concept
+## What does it look like? Two folders
 
 ```
 <your-product-repo>/
@@ -71,7 +71,7 @@ This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **
 
 ---
 
-## 🗺️ When to use which (at a glance)
+## 🗺️ Which agent, when? (at a glance)
 
 ```mermaid
 flowchart LR
@@ -86,7 +86,7 @@ flowchart LR
 - **ds-reviewer** — pre-merge read-only QA, emits P0/P1/P2 against the guideline.
 - **ds-figma-archivist** — after a surface is **finalized**, rebuilds the code back into Figma as an archive; standalone, not part of the pipeline above (mechanism below).
 
-## 📋 skills + kickoff (what the diagram can't show)
+## 📋 Where do you start? (what the diagram can't show)
 
 > "Which agent when" is the diagram above. This table only lists the kickoff / skill steps the diagram can't draw.
 
@@ -97,7 +97,7 @@ flowchart LR
 
 ---
 
-## Install
+## How do I install it?
 
 ```bash
 git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
@@ -117,7 +117,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## Schema contract (important — this is what agents recognize)
+## What should the guideline look like? (the schema agents recognize)
 
 `design/guideline.md` **MUST** use this schema for ds-designer / ds-reviewer to work:
 
@@ -145,7 +145,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## 🧭 How ds-figma-archivist works
+## 🧭 How does ds-figma-archivist work?
 
 ```mermaid
 flowchart LR
@@ -177,19 +177,7 @@ Four parts, each in its place:
 
 ---
 
-## ⚠ One historical limitation (resolved)
-
-> **[Update 2026-07] Largely resolved** — Claude Code now supports programmatically spawning user-defined agents via the `Agent` tool's `subagent_type` (this repo's agents are confirmed directly callable). Kept below as history / fallback reference.
-
-Early on, Claude Code couldn't auto-spawn custom agents from the main session, so this repo's agents needed a workaround. Downgrade workarounds (mostly unneeded now):
-
-1. **Let the main session embody it** — paste the agent content into the session and ask it to "follow this spec." Smoothest for read-only agents like ds-reviewer, which just read files and produce a report.
-2. **Wrap as a skill** — put the agent spec in `~/.claude/skills/<name>/SKILL.md` and trigger via skill (semantics differ from a true subagent).
-3. **Open a fresh session** — for context isolation, open a new session and paste the spec + task.
-
----
-
-## Versioning
+## How are versions numbered?
 
 - **patch** (`v0.1.x`) — wording fixes
 - **minor** (`v0.x.0`) — new agent / skill / reference / additive change
@@ -197,7 +185,7 @@ Early on, Claude Code couldn't auto-spawn custom agents from the main session, s
 
 ---
 
-## Roadmap
+## What's coming next?
 
 - [ ] Cross-project test harness — run ds-reviewer against a fixed-snapshot example codebase
 - [ ] Brand Book Skill integration: chisel output direct into `<repo>/brand/`
@@ -205,7 +193,7 @@ Early on, Claude Code couldn't auto-spawn custom agents from the main session, s
 
 ---
 
-## Contributing
+## Want to contribute?
 
 Welcome PRs:
 - New agents that fit the brand/ + design/ contract
@@ -217,7 +205,7 @@ Welcome PRs:
 ## FAQ
 
 **Q: Do I have to run `install.sh`?**
-Yes — if you want the agents callable from any project. It does just two things: copies `agents/*.md` into `~/.claude/agents/` and `references/*.md` into `~/.claude/references/`. `tools/` and `skills/` are deliberately not installed (see Install).
+Yes — if you want the agents callable from any project. It does just two things: copies `agents/*.md` into `~/.claude/agents/` and `references/*.md` into `~/.claude/references/`. `tools/` and `skills/` are deliberately not installed (see “How do I install it?”).
 
 **Q: How are these different from Claude Code's built-in `/agents`?**
 Built-ins are general assistants; these four are **bound to the `brand/` + `design/` contract** — ds-designer must read your guideline before writing code, ds-reviewer audits against it line by line. The difference is they know your brand rules.
