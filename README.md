@@ -6,16 +6,38 @@
 
 ---
 
-## 為什麼有這個 repo
+## 你可能遇過這個問題
 
-solo founder 跑多個 side project 時，最痛的點是：
-- brand 文件散落（vault / Notion / repo root / Figma 註解都有）
-- design system 跟 brand 反覆 drift（spec 改了 code 沒同步、或反過來）
-- 每個新 project 都要重新發明結構
+又開一個新 side project，寫著寫著就會想：
 
-這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + 通用 design 知識（`references/`）。從第二個 project 開始就可以直接套用。
+- 「我的 brand 規則到底放哪？vault？Notion？repo 根目錄？還是只留在 Figma 註解裡？」
+- 「AI 幫我寫的這個 component，顏色跟間距是照我的品牌來、還是它自己編的？」
+- 「上次 spec 改了、code 沒跟上——現在到底哪個才算數？」
+- 「每開一個新 project 都要重搭一次資料夾結構，煩。」
 
-**這不是設計系統理論**。是「實際跑過後留下的接地氣 SOP」。
+這些不是 AI 不夠強，是**它不知道你的品牌規則放哪、該聽誰的**。ds-agents 就是把這件事定下來：固定的資料夾 + 明確的 agent 分工，讓 AI 寫 code 時**自動 anchor 在你的品牌上**。
+
+這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + 通用 design 知識（`references/`）。**這不是設計系統理論**，是實際跑過後留下的接地氣 SOP——從第二個 project 開始直接套。
+
+---
+
+## 裝完之後你會得到
+
+- **AI 寫 UI 自動對齊品牌** — ds-designer 動 component 前先讀你的 `design/guideline.md`，不再自己編色票、間距、圓角
+- **drift 有人擋** — spec 跟 code 走鐘時，ds-reviewer 在 merge 前抓出來（P0/P1/P2 分級）
+- **新 project 秒起手** — 固定 schema + 通用知識 seed，你只填產品專屬的 `<TODO>`
+- **定案還能存回 Figma** — surface 拍板後，把 code 建回 Figma 當 design-of-record 建檔
+
+---
+
+## 先搞懂：skill 跟 agent 差在哪？（這 repo 用哪個）
+
+剛開始用 Claude Code 最容易搞混這兩個。一句話分：
+
+- **agent** = 一個**有獨立身份、自己一套 system prompt 的執行者**。你（或主 session）把任務丟給它，它用獨立 context 跑完再回報。ds-agents 主要就是這個——`ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist` 四隻。
+- **skill** = 一段**被觸發時載入當前 session 的指令 / 知識模板**，讓當下的執行者「照這套 SOP 做」（有些 skill 也能在 subagent 跑）。
+
+這個 repo **裝的是 agents**（進 `~/.claude/agents/`）；另附幾個 **skill 模板**（prompt template，要用時複製貼上，不自動裝）。什麼時候該叫哪隻 agent，看下面〈何時用哪隻〉。
 
 ---
 
@@ -189,6 +211,22 @@ flowchart LR
 - 新增符合 brand/+design/ 合約的 agent
 - `references/ds-design-universals.md` 通用 design 知識補充
 - 不同 stack 的 flow-walker config 範例
+
+---
+
+## 常見問題
+
+**Q：我一定要跑 `install.sh` 嗎？**
+要——如果你想讓 agent 從任何專案都叫得到。它只做兩件事：把 `agents/*.md` 複製進 `~/.claude/agents/`、把 `references/*.md` 複製進 `~/.claude/references/`。`tools/` 跟 `skills/` 刻意不裝（理由見〈安裝〉）。
+
+**Q：這些 agent 跟 Claude Code 內建的 `/agents` 差在哪？**
+內建的是通用助手；這 repo 的四隻是**綁定 `brand/` + `design/` 合約**的專用 agent——ds-designer 寫 code 前強制讀你的 guideline、ds-reviewer 照 guideline 逐條 audit。差別在「認得你的品牌規則」。
+
+**Q：怎麼把這套搬到下一個 project？**
+`brand/` 整包可搬（策略身份跨 project 通用）；`design/` 每個產品自己一份，用 ds-designer M1 bootstrap 照 schema 重建。agent 本身裝在 `~/.claude/` 全域，不用重裝。
+
+**Q：一定要先有 brand book 嗎？**
+不用。沒 guideline 時 ds-designer 會走 M1 bootstrap，訪談式幫你把 guideline 建起來；brand chisel 是另一個工具的事（見〈不在這個 repo 提供的〉）。
 
 ---
 
