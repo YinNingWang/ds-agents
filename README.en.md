@@ -99,13 +99,43 @@ flowchart LR
 
 ## How do I install it?
 
+Two ways — pick one.
+
+**Method 1 · paste a prompt (recommended, no git)**
+
+Copy the whole block below and paste it to Claude Code; it fetches the files straight into `~/.claude/` — no repo to clone:
+
+```
+Install ds-agents (design-system agents for Claude Code). Follow these rules; do NOT clone the repo:
+
+Files to install (fetch from GitHub raw):
+· agents → write to ~/.claude/agents/
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-designer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-reviewer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/tdd-developer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-figma-archivist.md
+· references → write to ~/.claude/references/
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/ds-design-universals.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/figma-archivist-playbook.md
+
+Install rules (matching the official install.sh):
+1. Create the dirs first: ~/.claude/agents and ~/.claude/references.
+2. agents: protect my local edits — if a target file exists and differs, back it up as <name>.bak.<timestamp> and ask me before overwriting; never clobber silently. Write directly only if it doesn't exist yet.
+3. references: overwrite (they are method playbooks kept in sync with the repo, meant to be replaced by the latest); back up the whole ~/.claude/references/ before overwriting.
+4. Write each file verbatim, including YAML frontmatter — don't edit the content.
+5. When done, summarize in plain language: what was added, what was skipped or backed up, where it lives, and remind me to open a new Claude Code conversation before the new agents are picked up.
+6. For anything not covered above, follow the principle "agents protect local edits, references sync with the repo."
+```
+
+**Method 2 · git clone (if you'd rather keep a repo on disk)**
+
 ```bash
 git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```
 
-`install.sh` installs two things:
+Both install the same thing:
 - `agents/*.md` → `~/.claude/agents/` (Claude Code's user-level agent directory)
 - `references/*.md` → `~/.claude/references/` (method playbooks + design universals the agents read at runtime)
 
@@ -205,7 +235,7 @@ Welcome PRs:
 ## FAQ
 
 **Q: Do I have to run `install.sh`?**
-Yes — if you want the agents callable from any project. It does just two things: copies `agents/*.md` into `~/.claude/agents/` and `references/*.md` into `~/.claude/references/`. `tools/` and `skills/` are deliberately not installed (see “How do I install it?”).
+No. Method 1 (paste a prompt) skips `install.sh` entirely; `install.sh` is what Method 2 (git clone) uses. Both do the same thing: put `agents/*.md` and `references/*.md` under `~/.claude/`. `tools/` and `skills/` are installed by neither (see “How do I install it?”).
 
 **Q: How are these different from Claude Code's built-in `/agents`?**
 Built-ins are general assistants; these four are **bound to the `brand/` + `design/` contract** — ds-designer must read your guideline before writing code, ds-reviewer audits against it line by line. The difference is they know your brand rules.

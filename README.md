@@ -99,13 +99,43 @@ flowchart LR
 
 ## 怎麼裝？
 
+兩種裝法，選一種就好。
+
+**方法 1 · 貼一段 prompt（推薦，免 git）**
+
+把下面整段複製、貼給 Claude Code，它會直接抓檔寫進 `~/.claude/`，不用 clone repo：
+
+```
+幫我安裝 ds-agents（Claude Code 的設計系統 agent）。請照下面規則做，不要 clone repo：
+
+要裝的檔案（從 GitHub raw 抓）：
+· agents → 寫到 ~/.claude/agents/
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-designer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-reviewer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/tdd-developer.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/agents/ds-figma-archivist.md
+· references → 寫到 ~/.claude/references/
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/ds-design-universals.md
+  - https://raw.githubusercontent.com/YinNingWang/ds-agents/main/references/figma-archivist-playbook.md
+
+安裝規則（跟官方 install.sh 一致）：
+1. 先建目錄：~/.claude/agents 與 ~/.claude/references。
+2. agents：保護我的在地修改——目標檔已存在且內容不同，先備份成 <name>.bak.<時間戳> 再問我要不要覆蓋，別默默蓋；不存在才直接寫入。
+3. references：直接覆蓋（它們是跟 repo 同步的 method playbook，本該被最新版蓋過）；覆蓋前先把整個 ~/.claude/references/ 備份一份。
+4. 每個檔照原樣寫入，含 YAML frontmatter，別改內容。
+5. 裝完用白話文條列：哪些新增、哪些跳過或備份、路徑在哪，並提醒我重開一個 Claude Code 對話才會抓到新 agent。
+6. 以上沒涵蓋的狀況，照「agents 保護在地、references 跟 repo 同步」原則自行判斷。
+```
+
+**方法 2 · git clone（想在本機留一份 repo 的人）**
+
 ```bash
 git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```
 
-`install.sh` 裝兩樣：
+兩種裝的東西一樣：
 - `agents/*.md` → `~/.claude/agents/`（Claude Code 的 user-level agent 目錄）
 - `references/*.md` → `~/.claude/references/`（agent 執行時讀的 method playbook + design universals）
 
@@ -205,7 +235,7 @@ flowchart LR
 ## 常見問題
 
 **Q：我一定要跑 `install.sh` 嗎？**
-要——如果你想讓 agent 從任何專案都叫得到。它只做兩件事：把 `agents/*.md` 複製進 `~/.claude/agents/`、把 `references/*.md` 複製進 `~/.claude/references/`。`tools/` 跟 `skills/` 刻意不裝（理由見〈怎麼裝〉）。
+不用。方法 1（貼 prompt）就免跑 `install.sh`；`install.sh` 是方法 2（git clone）在用的。兩種做的事一樣：把 `agents/*.md`、`references/*.md` 放進 `~/.claude/`。`tools/` 跟 `skills/` 兩種都不裝（理由見〈怎麼裝〉）。
 
 **Q：這些 agent 跟 Claude Code 內建的 `/agents` 差在哪？**
 內建的是通用助手；這 repo 的四隻是**綁定 `brand/` + `design/` 合約**的專用 agent——ds-designer 寫 code 前強制讀你的 guideline、ds-reviewer 照 guideline 逐條 audit。差別在「認得你的品牌規則」。
