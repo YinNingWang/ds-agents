@@ -1,25 +1,47 @@
 # ds-agents — Claude Code 設計系統 agent
 
-> 給 solo founder / 小團隊用的 Claude Code agent。在 brand 跟 design 之間建立明確分工，讓 AI 寫 UI code 時自動 anchor 在你的品牌規則上；surface 定案後還能把 code 存回 Figma 建檔。
+> 給 solo founder / 小團隊用的 Claude Code agent。在 brand 跟 design 之間分工清楚，讓 AI 寫 UI 時自動照著你的品牌規則走；一個畫面定案後，還能把成果存回 Figma 建檔。
 >
 > English version → [README.en.md](./README.en.md)
 
 ---
 
-## 為什麼有這個 repo
+## 你可能遇過這個問題
 
-solo founder 跑多個 side project 時，最痛的點是：
-- brand 文件散落（vault / Notion / repo root / Figma 註解都有）
-- design system 跟 brand 反覆 drift（spec 改了 code 沒同步、或反過來）
-- 每個新 project 都要重新發明結構
+又開一個新 side project，寫著寫著就會想：
 
-這個 repo 把跑過一次的真實流程 distill 出來：固定 folder 結構 + agent contract + 通用 design 知識（`references/`）。從第二個 project 開始就可以直接套用。
+- 「我的 brand 規則到底放哪？散在 Notion？repo 裡？還是只躺在 Figma 註解？」
+- 「AI 幫我寫的這個 component，顏色跟間距是照我的品牌來、還是它自己編的？」
+- 「上次 spec 改了、code 沒跟上——現在到底哪個才算數？」
+- 「每開一個新 project 都要重搭一次資料夾結構，煩。」
 
-**這不是設計系統理論**。是「實際跑過後留下的接地氣 SOP」。
+這些不是 AI 不夠強，是**它不知道你的品牌規則放哪、該聽誰的**。ds-agents 就是把這件事定下來：固定的資料夾 + 明確的 agent 分工，讓 AI 寫 code 時**自動照著你的品牌走**。
+
+這個 repo 把實際跑過一次的流程整理出來：固定的資料夾結構 + agent 分工約定 + 通用的 design 知識（`references/`）。**這不是設計系統理論**，是實際跑過後留下的接地氣 SOP——從第二個 project 開始直接套。
 
 ---
 
-## 概念
+## 裝完之後你會得到
+
+- **AI 寫 UI 自動對齊品牌** — ds-designer 動 component 前先讀你的 `design/guideline.md`，不再自己編色票、間距、圓角
+- **走鐘有人擋** — spec 跟 code 對不上時，ds-reviewer 在 merge 前抓出來（P0/P1/P2 分級）
+- **新 project 秒起手** — 固定格式 + 預先塞好的通用知識，你只填產品專屬的 `<TODO>`
+- **定案還能存回 Figma** — 一個畫面拍板後，把成果建回 Figma 當正式設計存檔
+
+---
+
+## 先搞懂：skill 跟 agent 差在哪？（這 repo 用哪個）
+
+剛開始用 Claude Code 最容易搞混這兩個。一句話分：
+
+- **agent** = 一個**有獨立身份、自己一套 system prompt 的執行者**。你（或主 session）把任務丟給它，它在自己獨立的空間跑完再回報。ds-agents 主要就是這個——`ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist` 四隻。
+- **skill** = 一段**被觸發時載入當前 session 的指令 / 知識模板**，讓當下的執行者「照這套步驟做」（有些 skill 也能丟到獨立 agent 裡跑）。
+
+這個 repo **裝的是 agents**（進 `~/.claude/agents/`）；另附幾個 **skill 模板**（prompt template，要用時複製貼上，不自動裝）。什麼時候該叫哪隻 agent，看下面〈什麼時候用哪一隻〉。
+
+---
+
+## 它長怎樣？兩個資料夾
 
 ```
 <你的產品 repo>/
@@ -44,12 +66,12 @@ solo founder 跑多個 side project 時，最痛的點是：
 
 ### 不在這個 repo 提供的（你自己定義）
 
-- **Brand 內容** — brand chisel 是另一個工具的事（你可以用 Brand Book Skill 或自己 chisel）。本 repo 不 vendoring brand 內容
+- **Brand 內容** — 打磨品牌是另一個工具的事（你可以用 Brand Book Skill，或自己來）。本 repo 不內建 brand 內容
 - **Develop guideline**（PR 流程 / commit message / branch 策略 / review checklist）— 屬於團隊治理，每個團隊不一樣。住在你的 `<repo>/CLAUDE.md` 或 `CONTRIBUTING.md`
 
 ---
 
-## 🗺️ 何時用哪隻（一眼看）
+## 🗺️ 什麼時候用哪一隻？（一眼看）
 
 ```mermaid
 flowchart LR
@@ -64,26 +86,48 @@ flowchart LR
 - **ds-reviewer** — pre-merge 唯讀 QA，對 guideline 出 P0/P1/P2。
 - **ds-figma-archivist** — 一個 surface **定案後**把 code 建回 Figma 存檔；standalone、不進上面 pipeline（機制見下）。
 
-## 📋 skills + 起手（圖沒涵蓋的）
+## 📋 剛起步該從哪開始？（圖沒畫到的）
 
 > agent 之間「何時用哪隻」看上面的圖。此表只列圖畫不出來的起手 / skill。
 
 | 情境 | 用什麼 | 為什麼 |
 |---|---|---|
-| 剛 chisel 完 brand，要建 design system 起手 | **`ds-designer` M1 bootstrap** | 訪談式建 guideline、seed 通用知識、你只填產品專屬 `<TODO>`（細節見 Schema 段） |
+| 剛把品牌打磨完，要開始建 design system | **`ds-designer` M1 bootstrap** | 訪談式建 guideline、seed 通用知識、你只填產品專屬 `<TODO>`（細節見 Schema 段） |
 | 用 Claude Design 雲端做視覺探索，要交給 Claude Code dev | **`skills/_skill_design-handoff.md`**（餵給 Claude Design） | Claude Design 跑 6-phase workflow 產 handoff 包，Claude Code 接（跨工具，agent 取代不了） |
 
 ---
 
-## 安裝
+## 怎麼裝？
+
+兩種裝法，選一種就好。
+
+**方法 1 · 貼一段就好（推薦，免 git）**
+
+複製下面整段貼給 Claude Code：
+
+```
+幫我把 ds-agents 裝進 Claude Code：下列 agents 檔抓到 ~/.claude/agents/、references 檔抓到 ~/.claude/references/（同名檔已存在就先備份再覆蓋）。
+
+agents:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-designer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-reviewer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/tdd-developer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-figma-archivist.md
+
+references:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/ds-design-universals.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/figma-archivist-playbook.md
+```
+
+**方法 2 · git clone（想在本機留一份 repo 的人）**
 
 ```bash
-git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
+git clone https://github.com/ning-wy/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```
 
-`install.sh` 裝兩樣：
+兩種裝的東西一樣：
 - `agents/*.md` → `~/.claude/agents/`（Claude Code 的 user-level agent 目錄）
 - `references/*.md` → `~/.claude/references/`（agent 執行時讀的 method playbook + design universals）
 
@@ -95,7 +139,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## Schema 合約（重要 — agent 認的是這個）
+## guideline 要長怎樣？（agent 認這個 schema）
 
 `design/guideline.md` **必須**用以下 schema，ds-designer / ds-reviewer 才能 work：
 
@@ -123,7 +167,7 @@ cd ~/sandbox/ds-agents
 
 ---
 
-## 🧭 ds-figma-archivist 運作機制
+## 🧭 ds-figma-archivist 怎麼運作？
 
 ```mermaid
 flowchart LR
@@ -155,19 +199,7 @@ flowchart LR
 
 ---
 
-## ⚠ 一個歷史限制（已解除）
-
-> **[更新 2026-07] 已大致解除** — Claude Code 現已支援 user-defined agent 經 `Agent` tool 的 `subagent_type` 程式化 spawn（本 repo agent 實測可直接叫）。以下留作歷史 / 降級參考。
-
-早期 Claude Code 還不支援「主 session 自動把自定義 agent 叫起來跑」，本 repo agent 曾需繞道。降級 workaround（現多半用不到）：
-
-1. **讓主 session 內化執行** — 把 agent 內容貼進 session，請它「照這份 spec 做事」。對 ds-reviewer 這種純讀檔產報告的最順。
-2. **包一層 skill 叫** — agent spec 包進 `~/.claude/skills/<name>/SKILL.md`，用 skill 觸發（semantics 跟真 subagent 不同）。
-3. **另開 session 跑** — 為 context 隔離，開新 session 貼 spec + 任務互動執行。
-
----
-
-## 版本管理
+## 版本怎麼編？
 
 - **patch** (`v0.1.x`) — 字句修
 - **minor** (`v0.x.0`) — 新 agent / skill / reference / additive 改動
@@ -175,20 +207,36 @@ flowchart LR
 
 ---
 
-## Roadmap
+## 接下來會做什麼？
 
 - [ ] Cross-project 測試 harness — 用固定 snapshot 範例 codebase 跑 ds-reviewer
-- [ ] Brand Book Skill 整合：chisel 完直接輸出進 `<repo>/brand/`
-- [ ] N=2 dogfood 在不同 product（含 flow-walker config）→ 萃出 v2 patterns + 通用 config 範式
+- [ ] Brand Book Skill 整合：品牌打磨完直接輸出進 `<repo>/brand/`
+- [ ] 在第 2 個不同產品上實際跑一遍（含 flow-walker config）→ 整理出 v2 通用模式 + config 範式
 
 ---
 
-## 貢獻
+## 想一起貢獻？
 
 歡迎的 PR：
 - 新增符合 brand/+design/ 合約的 agent
 - `references/ds-design-universals.md` 通用 design 知識補充
 - 不同 stack 的 flow-walker config 範例
+
+---
+
+## 常見問題
+
+**Q：我一定要跑 `install.sh` 嗎？**
+不用。方法 1（貼 prompt）就免跑 `install.sh`；`install.sh` 是方法 2（git clone）在用的。兩種做的事一樣：把 `agents/*.md`、`references/*.md` 放進 `~/.claude/`。`tools/` 跟 `skills/` 兩種都不裝（理由見〈怎麼裝〉）。
+
+**Q：這些 agent 跟 Claude Code 內建的 `/agents` 差在哪？**
+內建的是通用助手；這 repo 的四隻是**綁定 `brand/` + `design/` 合約**的專用 agent——ds-designer 寫 code 前強制讀你的 guideline、ds-reviewer 照 guideline 逐條 audit。差別在「認得你的品牌規則」。
+
+**Q：怎麼把這套搬到下一個 project？**
+`brand/` 整包可搬（策略身份跨 project 通用）；`design/` 每個產品自己一份，用 ds-designer M1 bootstrap 照 schema 重建。agent 本身裝在 `~/.claude/` 全域，不用重裝。
+
+**Q：一定要先有 brand book 嗎？**
+不用。沒 guideline 時 ds-designer 會走 M1 bootstrap，訪談式幫你把 guideline 建起來；打磨品牌是另一個工具的事（見〈不在這個 repo 提供的〉）。
 
 ---
 

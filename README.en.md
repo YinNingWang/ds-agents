@@ -1,176 +1,242 @@
 # ds-agents — Design System Agents for Claude Code
 
+> Claude Code agents for solo founders / small teams. They set a clear division of labour between **brand** and **design**, so AI follows your brand rules whenever it writes UI — and once a screen is finalized, archives the result back into Figma.
+>
 > 中文版 → [README.md](./README.md)
 
-Three Claude Code agents + a starter scaffold + two skills for solo founders & small teams running a brand-aware design system.
+---
+
+## You might have hit this problem
+
+Every time you spin up a new side project, somewhere mid-build you wonder:
+
+- "Where do my brand rules actually live? scattered in Notion? in the repo? or only in Figma comments?"
+- "This component the AI wrote — are the colors and spacing from my brand, or did it just make them up?"
+- "The spec changed last week and the code didn't follow — which one is authoritative now?"
+- "Every new project I re-scaffold the same folders. Tedious."
+
+These aren't the AI being weak — it just **doesn't know where your brand rules live or which one to obey**. ds-agents pins that down: a fixed folder layout + a clear division of labour between agents, so AI **follows your brand** whenever it writes code.
+
+This repo captures one real run: a fixed folder structure + a clear division of labour between agents + universal design knowledge (`references/`). **Not design-system theory** — a grounded SOP that survived one real shipment. From the second project onwards it's copy-and-adapt.
 
 ---
 
-## 🚀 Quick start
+## What you get after installing
 
-### 1. `agents/` — three agents (install or load on demand)
-
-- **`ds-designer.md`** → builds & maintains `<repo>/design/guideline.md`. Spawn when bootstrapping or maintaining a design system.
-- **`ds-reviewer.md`** → read-only design QA. Spawn after a feature is built / pre-merge.
-- **`tdd-developer.md`** → engineering agent with TDD discipline + auto-loads design context. Best for features with a clear input→output (API / schema / DB / logic); PAUSEs and escalates to ds-designer on a design gap.
-
-### 2. `skills/` — two prompts you paste into an AI session
-
-- **`_skill_design-handoff.md`** → paste into **Claude Design**. It produces a complete PRD handoff bundle: asks where your codebase is, reads the stack and naming conventions, then produces a `handoff.zip` tailored to that codebase for Claude Code to consume.
-- **`stage-0-visual-audit.md`** → paste into **Claude Code**. Audits brand-vs-code visual drift in an existing codebase. **Only useful when "codebase + brand already exist" and you want to find the gap**.
-
-### 3. `starter/` — initial design system scaffold
-
-When bootstrapping from zero, **copy the entire `starter/` folder into your repo** (rename to your product), then let ds-designer modify and extend. Pre-loaded with universal anti-patterns + governance scaffold so you don't reinvent the wheel.
+- **AI writes UI aligned to your brand** — ds-designer reads your `design/guideline.md` before touching a component; no more made-up color values, spacing, radii
+- **Out-of-sync gets caught** — when spec and code diverge, ds-reviewer flags it before merge (P0/P1/P2)
+- **New projects start in seconds** — fixed format + universal knowledge already filled in; you only add product-specific `<TODO>`s
+- **Finalized code archives back to Figma** — once a screen is locked, rebuild the code into Figma as the official design of record
 
 ---
 
-## 📋 When to use what
+## First: skill vs agent (and which this repo uses)
 
-| Situation | Use | Why |
-|---|---|---|
-| Just chiseled brand, bootstrapping design system | **`starter/` (copy in)** or **`ds-designer` M1 bootstrap** | starter = fast (5 min copy + edit); M1 = interview-style (30-60 min, more tailored) |
-| Existing codebase + brand exists, want to see drift | **`skills/stage-0-visual-audit.md`** (paste into Claude Code session) | One-time audit, produces drift report; feed result into ds-designer |
-| Design SoT exists, writing a feature | **`tdd-developer`** | Step 0 auto-reads guideline, TDD writes + applies established tokens / components |
-| Mid-implementation hits a design gap | **`tdd-developer` auto-escalates → `ds-designer` Drift Protocol** | tdd-developer doesn't invent design decisions; PAUSE → ds-designer proposes options → you decide → written to guideline + Decisions log → tdd-developer resumes |
-| PR pre-merge / want to audit an existing component | **`ds-reviewer`** | Read-only, produces P0/P1/P2 report, never modifies code |
-| Visual exploration via Claude Design, handing off to Claude Code dev | **`skills/_skill_design-handoff.md`** (paste into Claude Design) | Claude Design runs the 6-phase workflow to produce a handoff bundle |
-| Pure refactor of existing code (no UI change) | **`tdd-developer` only** | No design change, no need for ds-designer / ds-reviewer |
+The two things most beginners confuse in Claude Code. In one line:
+
+- **agent** = an **executor with its own identity and system prompt**. You (or the main session) hand it a task; it runs in its own isolated space and reports back. That's mainly what ds-agents is — the four: `ds-designer` / `tdd-developer` / `ds-reviewer` / `ds-figma-archivist`.
+- **skill** = an **instruction / knowledge template loaded into the current session when triggered**, telling whoever's running to "follow these steps" (some skills can also run inside a separate agent).
+
+This repo **installs agents** (into `~/.claude/agents/`); it also ships a few **skill templates** (prompt templates, copy-paste when needed, not auto-installed). Which agent to call when → see "Which agent, when?" below.
 
 ---
 
-## Why this repo exists
-
-Running multiple side projects as a solo founder, the recurring pain points are:
-- Brand docs scatter (vault / Notion / repo root / Figma comments)
-- Design system drifts from brand (spec changes don't sync to code, or vice versa)
-- Each new project reinvents the structure
-
-This repo distills one real run into: fixed folder structure + agent contract + starter scaffold + universal anti-patterns. From the second project onwards, it's a copy-and-adapt job.
-
-**Not a design system theory**. A grounded SOP that survived one real shipment.
-
----
-
-## Concept
+## What does it look like? Two folders
 
 ```
 <your-product-repo>/
 ├── brand/              ← strategic identity (ds-designer read-only)
 │   ├── brandbook.md       full brand book (Strategy + Voice + Personality)
-│   ├── pillars.md         4 axioms / archetype / verbs / manifesto (1-page card)
-│   ├── evolution.md       change log (active / pending / rejected / queue)
+│   ├── pillars.md         4 axioms / archetype / verbs / manifesto (condensed)
+│   ├── evolution.md       brand change log (active / pending / rejected / queue)
 │   ├── audit.md           self-audit report (frozen by date, optional)
-│   └── chisel-skill.md    chisel methodology meta-doc (optional)
+│   └── chisel-skill.md    brand chisel methodology (meta, optional)
 ├── design/             ← code-coupled implementation
 │   ├── guideline.md       ★ Foundations / Components / Patterns / Principles
 │   ├── tokens.md          ★ CSS variables + Tailwind name spec
-│   ├── README.md
-│   └── stage-0/           (optional) one-time codebase audit history
+│   ├── figma-archive.md   (when using ds-figma-archivist) this product's Figma archive answers
+│   └── README.md
 └── src/...
 ```
 
 **Two folders, clear concerns**:
 
-- **brand/** = strategic identity. Quarterly/half-yearly cadence. Agents **never write here**. Portable across projects.
-- **design/** = code-coupled implementation. Per-PR cadence. ds-designer writes, ds-reviewer reads.
+- **brand/** = strategic identity. Quarterly/half-yearly cadence. Agents **never write here**. Portable across projects as a bundle.
+- **design/** = code-coupled implementation. May change per PR. ds-designer writes, ds-reviewer reads.
 
 ### Out of scope for this repo (define your own)
 
-- **Brand content** — that's a separate tool's job (use Brand Book Skill or chisel your own). This repo does not vendor brand content.
+- **Brand content** — defining your brand is a separate tool's job (use Brand Book Skill or do it yourself). This repo does not bundle brand content.
 - **Develop guideline** (PR flow / commit format / branch strategy / review checklist) — team governance, varies per team. Lives in your `<repo>/CLAUDE.md` or `CONTRIBUTING.md`.
 
 ---
 
-## Install
+## 🗺️ Which agent, when? (at a glance)
+
+```mermaid
+flowchart LR
+  A["design SoT + UI feature<br/>ds-designer"] --> C
+  B["logic/data feature · refactor<br/>tdd-developer"] --> C
+  B -. design gap .-> A
+  C["pre-merge QA · read-only<br/>ds-reviewer"] --> D["finalized code→Figma · standalone<br/>ds-figma-archivist"]
+```
+
+- **ds-designer** — build / maintain the design SoT (`design/guideline.md`) **+ UI / component features** (M2 enforce, apply existing tokens/components). Start from zero via M1 bootstrap (seeds universal knowledge, see Schema below).
+- **tdd-developer** — **logic / data features + pure refactors** (no UI, input→output, TDD); auto-escalates back to ds-designer on a design gap.
+- **ds-reviewer** — pre-merge read-only QA, emits P0/P1/P2 against the guideline.
+- **ds-figma-archivist** — after a surface is **finalized**, rebuilds the code back into Figma as an archive; standalone, not part of the pipeline above (mechanism below).
+
+## 📋 Where do you start? (what the diagram can't show)
+
+> "Which agent when" is the diagram above. This table only lists the kickoff / skill steps the diagram can't draw.
+
+| Situation | Use | Why |
+|---|---|---|
+| Just finished defining your brand, starting a design system | **`ds-designer` M1 bootstrap** | interview-style guideline build, seeds universal knowledge, you only fill product-specific `<TODO>` (details in Schema) |
+| Visual exploration via Claude Design, handing off to Claude Code dev | **`skills/_skill_design-handoff.md`** (feed to Claude Design) | Claude Design runs a 6-phase workflow to produce a handoff bundle for Claude Code (cross-tool, agents can't replace it) |
+
+---
+
+## How do I install it?
+
+Two ways — pick one.
+
+**Method 1 · just paste this (recommended, no git)**
+
+Copy the whole block below and paste it to Claude Code:
+
+```
+Install ds-agents into my Claude Code: fetch the agents files into ~/.claude/agents/ and the references files into ~/.claude/references/ (if a file already exists, back it up before overwriting).
+
+agents:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-designer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-reviewer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/tdd-developer.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/agents/ds-figma-archivist.md
+
+references:
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/ds-design-universals.md
+https://raw.githubusercontent.com/ning-wy/ds-agents/main/references/figma-archivist-playbook.md
+```
+
+**Method 2 · git clone (if you'd rather keep a repo on disk)**
 
 ```bash
-git clone https://github.com/YinNingWang/ds-agents.git ~/sandbox/ds-agents
+git clone https://github.com/ning-wy/ds-agents.git ~/sandbox/ds-agents
 cd ~/sandbox/ds-agents
 ./install.sh
 ```
 
-`install.sh` copies `agents/*.md` into `~/.claude/agents/` (Claude Code's user-level agent directory).
+Both install the same thing:
+- `agents/*.md` → `~/.claude/agents/` (Claude Code's user-level agent directory)
+- `references/*.md` → `~/.claude/references/` (method playbooks + design universals the agents read at runtime)
 
-`skills/` and `starter/` are **not** auto-installed:
-- `skills/` are prompt templates — copy contents into an AI session when needed
-- `starter/` is a scaffold — copy the whole folder into your repo when needed
+`tools/` and `skills/` are **not** auto-installed:
+- `tools/` (flow-walker capture harness) runs from the repo (`cd tools/flow-walker && npm install`)
+- `skills/` are prompt templates — copy the content into an AI session when needed
+
+> **Why `~/.claude/` holds only agents + references, not tools (intentional, not a missing step)**: things agents **read** (playbooks / universals) get installed to a fixed path so they're reachable from any cwd; the tools agents **run** (the harness) stay in the repo.
 
 ---
 
-## Schema contract
+## What should the guideline look like? (the schema agents recognize)
 
-`design/guideline.md` MUST use this top-level structure for ds-designer / ds-reviewer to work:
+`design/guideline.md` **MUST** use this schema for ds-designer / ds-reviewer to work:
 
 ```
 # <Product> Design Guideline
 
 ## How to use this
 ## Foundations
+  (token architecture, theme×palette, typography, spacing, motion)
 ## Components
+  (Button, Section, Icon, Currency, Sheet…)
 ## Patterns
+  (visual constraints R1-Rn, state patterns, interaction patterns)
 ## Principles
+  (brand axioms pointer, voice pointer, anti-patterns, governance)
 ## PR Design Review Checklist
 ## References
 ## Decisions log     ← append-only, ds-designer Drift Protocol writes here
 ## Open items        ← active backlog, ds-reviewer findings written here
 ```
 
-`design/tokens.md` MUST contain CSS variable definitions + Tailwind extend snippet — the source of truth for `globals.css`.
+`design/tokens.md` **MUST** contain CSS variable definitions + Tailwind extend snippet — the source of truth for `globals.css`.
 
-→ `starter/design/guideline.md` already follows this schema + has universal anti-patterns baked in. Copy and adapt.
-
----
-
-## ⚠ One current inconvenience
-
-**Plain version**: In theory, Claude Code should be able to programmatically spawn your custom agents from the main session — but it doesn't yet. So the three agents in this repo **can't be invoked via the `Agent` tool with one click**. You'll need a small workaround.
-
-The detail: Claude Code's 6 built-in agents (claude / Explore / Plan, etc.) are callable programmatically, but agents you place in `~/.claude/agents/` yourself (including this repo's three) currently can't be auto-spawned that way.
-
-**Three workarounds** (all functional, just a bit manual):
-
-1. **Simplest · let the main session embody it**
-   In a Claude Code session, paste the agent's content and ask the main session to "follow this spec." This works **best for read-only agents like ds-reviewer**, which don't need context isolation.
-
-2. **Wrap as a skill**
-   Put the agent spec inside `~/.claude/skills/<name>/SKILL.md` and invoke via a skill trigger.
-   Trade-off: execution semantics differ from a true subagent (skills aren't isolated processes).
-
-3. **Open a fresh session**
-   For context isolation, open a new Claude Code session and paste the agent spec + what you want it to do.
-
-**Will future migration hurt?**
-No. When Claude Code supports user-defined agent programmatic spawn, the existing agent specs **don't need to change** — you can flip the invocation method without rewriting anything.
+→ No manual copying: **ds-designer M1 bootstrap builds to this schema**, seeding universal knowledge from `references/ds-design-universals.md` (component principles / state patterns / anti-patterns / governance / PR checklist); you only fill product-specific `<TODO>`s.
 
 ---
 
-## Versioning
+## 🧭 How does ds-figma-archivist work?
 
-- **patch** (`v0.1.x`) — typo / wording fix
-- **minor** (`v0.x.0`) — new agent / skill / starter / additive change
-- **major** (`v1.0.0`) — schema break
+```mermaid
+flowchart LR
+  You(["You / orchestrator"]) -->|spawn + scope| A["ds-figma-archivist<br/>(thin agent)"]
+  subgraph reads["agent reads — never guesses"]
+    PB["playbook<br/>method · the questions"]
+    SoT["project SoT<br/>design/figma-archive.md · the answers"]
+    DT["dev-truth<br/>screenshots + computed metrics"]
+  end
+  PB --> A
+  SoT --> A
+  DT --> A
+  Code["running app<br/>(code = source of truth)"] --> FW["flow-walker<br/>harness + project config"]
+  FW -->|force each UI state| DT
+  A -->|use_figma| MCP["Figma MCP"]
+  MCP -->|reuse DS components · write frames| FIG["Figma file<br/>(design-of-record archive)"]
+  A -. build .-> CR["independent critic<br/>(objective metrics diff)"]
+  CR -. divergences → fix .-> A
+```
 
-Currently `v0.2.0` — sealed from a single dogfood reference run.
+Four parts, each in its place:
+
+- **agent (thin)** (`agents/`) — orchestrates only; reads playbook + project SoT + dev-truth, drives the Figma MCP. Holds no depth.
+- **playbook** (`references/`) — universal method / questions (first principles + a Figma MCP call-shape appendix). Cross-project.
+- **project SoT** (`<repo>/design/figma-archive.md`) — this product's answers (file key / components / frame sizes / decisions). Cross-session.
+- **flow-walker** (`tools/`) — universal harness + project config, drives the app to produce dev-truth (screenshots + computed metrics, so metrics are *measured, not estimated*).
+
+> playbook carries the questions, project SoT carries the answers, flow-walker supplies dev truth, the agent assembles into Figma, an independent critic verifies objectively.
 
 ---
 
-## Roadmap
+## How are versions numbered?
 
-- [ ] Skill wrapper per agent (programmatic-spawn workaround)
+- **patch** (`v0.1.x`) — wording fixes
+- **minor** (`v0.x.0`) — new agent / skill / reference / additive change
+- **major** (`v1.0.0`) — schema break (e.g. required `guideline.md` section names change)
+
+---
+
+## What's coming next?
+
 - [ ] Cross-project test harness — run ds-reviewer against a fixed-snapshot example codebase
-- [ ] More starter scaffolds (different stacks: SvelteKit + Tailwind, Astro + UnoCSS, etc.)
-- [ ] Brand Book Skill integration (chisel output direct into `<repo>/brand/`)
-- [ ] N=2 dogfood run on a different product → distill v2 patterns
+- [ ] Brand Book Skill integration: brand-definition output direct into `<repo>/brand/`
+- [ ] Run it for real on a second product (incl. flow-walker config) → distill v2 patterns + a universal config template
 
 ---
 
-## Contributing
+## Want to contribute?
 
 Welcome PRs:
-- Starter scaffold variants for different stacks
-- New agents that fit the brand/+design/ contract
-- Additions to universal anti-patterns / governance in the starter
+- New agents that fit the brand/ + design/ contract
+- Additions to universal design knowledge in `references/ds-design-universals.md`
+- flow-walker config examples for different stacks
+
+---
+
+## FAQ
+
+**Q: Do I have to run `install.sh`?**
+No. Method 1 (paste a prompt) skips `install.sh` entirely; `install.sh` is what Method 2 (git clone) uses. Both do the same thing: put `agents/*.md` and `references/*.md` under `~/.claude/`. `tools/` and `skills/` are installed by neither (see “How do I install it?”).
+
+**Q: How are these different from Claude Code's built-in `/agents`?**
+Built-ins are general assistants; these four are **bound to the `brand/` + `design/` contract** — ds-designer must read your guideline before writing code, ds-reviewer audits against it line by line. The difference is they know your brand rules.
+
+**Q: How do I move this to the next project?**
+`brand/` is portable as a bundle (strategic identity is cross-project); `design/` is per-product, rebuilt via ds-designer M1 bootstrap against the schema. The agents themselves live globally in `~/.claude/`, so no reinstall.
+
+**Q: Do I need a brand book first?**
+No. With no guideline, ds-designer runs M1 bootstrap to build it interview-style; defining your brand is a separate tool's job (see Out of scope).
 
 ---
 

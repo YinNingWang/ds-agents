@@ -53,7 +53,3 @@ fi
 
 echo ""
 echo "Done. Agents available at $TARGET"
-echo ""
-echo "Note: as of 2026-05, user-level agents are not yet callable via the"
-echo "Agent tool subagent_type. They run via inline embodiment or Skill wrapper."
-echo "See README.md §'Programmatic spawn' for details."
