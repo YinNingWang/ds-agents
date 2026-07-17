@@ -11,7 +11,7 @@
 ## First principles
 
 1. **Measure, don't approximate.** Spacing, size, and color come from an exact source — the code's design tokens / Tailwind classes, or computed styles captured from the running app. A screenshot only *verifies*; it never *sources* a number. Eyeballing gaps from an image is the root of "small errors that keep coming back".
-2. **A dev-truth reference is mandatory for fidelity.** Diff every build against a reference of *what the app actually ships* (a live/captured render), not against code intent and not against the Figma file's own frames (those can be stale). No dev-truth reference → cap fidelity confidence at MEDIUM and say so.
+2. **A dev-truth reference is mandatory for fidelity.** Diff every build against a reference of *what the app actually ships* (a live/captured render), not against code intent and not against the Figma file's own frames (those can be stale). No dev-truth reference → **your first move is to stand up the project's capture harness config and run it** (see below) — NOT to accept MEDIUM. Cap at MEDIUM only for the specific states the harness genuinely can't reach (auth/backend-gated), and name which.
 3. **Existing-instance-first — but validate against dev-truth.** Reuse the components/instances the target file already uses before searching a DS by keyword. A same-named DS component is often visually wrong; a reused instance is only as current as whoever last edited it — if it disagrees with dev-truth it is stale: flag it, don't silently clone it.
 4. **Confirm scope before building.** Surface (which finalized screen/state), destination (file + page), and **target frame dimensions / breakpoint convention** are required inputs — never defaulted. The agent can't ask interactively, so the orchestrator gathers these and passes them in.
 5. **Build, then an *independent* critic.** The builder self-verifying is author=critic — it spot-checks a few values and misses the rest. Gate every build behind a fresh, metrics-anchored critic that objectively diffs built geometry against the reference and lists every divergence over a small threshold. (Mirrors `ds-reviewer` ⟂ `ds-designer`.)
@@ -29,6 +29,22 @@ This harness is **project-agnostic**; each project supplies a thin **config**: t
 
 - Walk the DOM you care about *including chrome* — a metrics walk scoped to `main` alone drops the header/footer and leaves that geometry unverifiable.
 - Metrics beat screenshots for spacing precision but tell you nothing about animation or intentional navigate-away states — note what a static capture cannot represent.
+
+**No config for this project yet? Building one is the default first move, not optional** (see Principle 2). The engine (`ds-agents/tools/flow-walker`, Playwright) is project-agnostic; you write a thin per-project config (`<repo>/scripts/flow-walker.<project>.config.mjs`) and run it (`node <ds-agents>/tools/flow-walker/flow-walker.mjs <config>`; one-time `npm install && npx playwright install chromium` in the engine dir). See flow-walker's README. Minimum viable config:
+
+```js
+export default {
+  baseUrl: 'http://localhost:<port>',
+  viewports: [{ tag: 'mobile', w: 375, h: 812, isMobile: true }, { tag: 'desktop', w: 1440, h: 900 }],
+  outDir: '/tmp/<project>-flow-walker',
+  metricsRoots: ['body'],
+  states: [{ name: 'state', reach: async (page) => { await page.goto(url); await page.getByRole('…').waitFor(); } }],
+};
+```
+
+Grep the app for how to reach each state (routes, mock cookies, client-side validations); `reach()` can click/fill, so interactive states (a dropdown-open, a validation error) are capturable too. A state you genuinely can't reach without a live backend/auth is the *only* legit reason to leave that state at MEDIUM.
+
+**The harness routinely catches render↔code gaps that reading code tokens alone misses** — e.g. a chip that says `rounded-md` (6px) in code but renders `border-radius ≈ 9999px` (pill). For the diff, the **live computed value is truth**; when it disagrees with a code class, flag the gap — don't silently trust the class.
 
 ## Appendix — Figma MCP call-shape notes (externalized depth)
 
